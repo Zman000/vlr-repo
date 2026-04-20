@@ -1,0 +1,1330 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Stats & Search — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      /* ── Search Hero ─────────────────────────────── */
+      .stats-hero {
+        background: linear-gradient(160deg, #0d0511 0%, #0f1117 70%);
+        border-bottom: 1px solid var(--border);
+        padding: 40px 0 32px;
+        position: relative;
+        overflow: hidden;
+      }
+      .stats-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 50% 0%,
+          rgba(255, 70, 85, 0.08) 0%,
+          transparent 60%
+        );
+      }
+      .hero-title {
+        font-family: var(--font-head);
+        font-size: 36px;
+        font-weight: 700;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        position: relative;
+        z-index: 1;
+      }
+      .hero-title span {
+        color: var(--accent);
+      }
+      .hero-sub {
+        font-size: 14px;
+        color: var(--text-2);
+        margin-top: 6px;
+        position: relative;
+        z-index: 1;
+      }
+
+      /* ── Main search bar ─────────────────────────── */
+      .search-bar-wrap {
+        position: relative;
+        z-index: 1;
+        margin-top: 20px;
+        display: flex;
+        gap: 0;
+        max-width: 680px;
+      }
+      .main-search-input {
+        flex: 1;
+        padding: 14px 18px;
+        background: var(--bg-3);
+        border: 2px solid var(--border);
+        border-right: none;
+        border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+        color: var(--text-1);
+        font-family: var(--font-body);
+        font-size: 15px;
+        outline: none;
+        transition: border-color var(--trans);
+      }
+      .main-search-input:focus {
+        border-color: var(--accent);
+      }
+      .main-search-input::placeholder {
+        color: var(--text-3);
+      }
+      .search-btn {
+        padding: 14px 24px;
+        background: var(--accent);
+        color: #fff;
+        border: 2px solid var(--accent);
+        border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+        font-family: var(--font-cond);
+        font-size: 14px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: all var(--trans);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .search-btn:hover {
+        background: var(--accent-h);
+        border-color: var(--accent-h);
+      }
+
+      /* ── Filters panel ───────────────────────────── */
+      .filters-panel {
+        background: var(--bg-2);
+        border-bottom: 1px solid var(--border);
+        padding: 14px 0;
+      }
+      .filters-inner {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .filter-label {
+        font-family: var(--font-cond);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+        white-space: nowrap;
+      }
+      .filter-select {
+        padding: 6px 10px;
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text-1);
+        font-size: 12px;
+        font-family: var(--font-body);
+        outline: none;
+        cursor: pointer;
+        transition: border-color var(--trans);
+      }
+      .filter-select:focus {
+        border-color: var(--accent);
+      }
+      .filter-input {
+        padding: 6px 10px;
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text-1);
+        font-size: 12px;
+        font-family: var(--font-body);
+        outline: none;
+        width: 110px;
+        transition: border-color var(--trans);
+      }
+      .filter-input:focus {
+        border-color: var(--accent);
+      }
+      .filter-divider {
+        width: 1px;
+        height: 24px;
+        background: var(--border);
+        flex-shrink: 0;
+      }
+      .active-filters {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+      .active-filter-tag {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 3px 10px;
+        background: var(--accent-dim);
+        border: 1px solid rgba(255, 70, 85, 0.3);
+        border-radius: 20px;
+        font-size: 11px;
+        color: var(--accent);
+        font-weight: 600;
+        font-family: var(--font-cond);
+      }
+      .active-filter-tag button {
+        background: none;
+        border: none;
+        color: var(--accent);
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+        padding: 0 0 0 2px;
+      }
+
+      /* ── Result sections ─────────────────────────── */
+      .results-wrap {
+        padding: 24px 0;
+      }
+      .result-section {
+        margin-bottom: 32px;
+      }
+      .result-section-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
+        border-bottom: 1px solid var(--border);
+      }
+      .result-count {
+        font-family: var(--font-cond);
+        font-size: 12px;
+        color: var(--text-3);
+        font-weight: 700;
+      }
+
+      /* ── Player stats table ──────────────────────── */
+      .stats-table {
+        width: 100%;
+      }
+      .st-row {
+        display: grid;
+        grid-template-columns: 36px 2fr 1fr 80px 80px 80px 80px 80px;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background var(--trans);
+      }
+      .st-row:last-child {
+        border-bottom: none;
+      }
+      .st-row:hover {
+        background: var(--bg-3);
+      }
+      .st-row.hdr {
+        background: var(--bg-3);
+        cursor: default;
+        font-family: var(--font-cond);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+      }
+      .st-row.hdr:hover {
+        background: var(--bg-3);
+      }
+      .stat-val {
+        font-family: var(--font-cond);
+        font-size: 14px;
+        font-weight: 700;
+        text-align: center;
+      }
+      .stat-val.hi {
+        color: var(--accent);
+      }
+      .stat-val.g {
+        color: var(--green);
+      }
+      .stat-val.r {
+        color: var(--red);
+      }
+
+      /* ── Team table ──────────────────────────────── */
+      .team-row {
+        display: grid;
+        grid-template-columns: 40px 2fr 80px 80px 80px 80px 80px;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background var(--trans);
+      }
+      .team-row:hover {
+        background: var(--bg-3);
+      }
+      .team-row:last-child {
+        border-bottom: none;
+      }
+      .team-row.hdr {
+        background: var(--bg-3);
+        cursor: default;
+        font-family: var(--font-cond);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+      }
+      .team-row.hdr:hover {
+        background: var(--bg-3);
+      }
+
+      /* ── Match row ───────────────────────────────── */
+      .match-search-row {
+        display: grid;
+        grid-template-columns: 90px 1fr 100px 160px 80px;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background var(--trans);
+      }
+      .match-search-row:hover {
+        background: var(--bg-3);
+      }
+      .match-search-row:last-child {
+        border-bottom: none;
+      }
+      .match-search-row.hdr {
+        background: var(--bg-3);
+        cursor: default;
+        font-family: var(--font-cond);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+      }
+
+      /* ── Tournament row ──────────────────────────── */
+      .event-search-row {
+        display: grid;
+        grid-template-columns: 2fr 100px 80px 80px 120px 80px;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background var(--trans);
+      }
+      .event-search-row:hover {
+        background: var(--bg-3);
+      }
+      .event-search-row:last-child {
+        border-bottom: none;
+      }
+      .event-search-row.hdr {
+        background: var(--bg-3);
+        cursor: default;
+        font-family: var(--font-cond);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+      }
+
+      /* ── Quick stat cards ────────────────────────── */
+      .quick-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .qs-card {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .qs-icon {
+        font-size: 26px;
+      }
+      .qs-val {
+        font-family: var(--font-head);
+        font-size: 26px;
+        font-weight: 700;
+        line-height: 1;
+      }
+      .qs-lbl {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+        margin-top: 2px;
+      }
+
+      /* ── No results ──────────────────────────────── */
+      .no-results {
+        padding: 48px;
+        text-align: center;
+      }
+      .no-results .icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+      }
+      .no-results p {
+        color: var(--text-3);
+        font-size: 14px;
+      }
+
+      /* ── Top performers widget ───────────────────── */
+      .top-player-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background var(--trans);
+      }
+      .top-player-row:hover {
+        background: var(--bg-3);
+      }
+      .top-player-row:last-child {
+        border-bottom: none;
+      }
+      .tp-rank {
+        font-family: var(--font-cond);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-3);
+        width: 28px;
+        flex-shrink: 0;
+      }
+      .tp-rank.g1 {
+        color: #fbbf24;
+      }
+      .tp-rank.g2 {
+        color: #94a3b8;
+      }
+      .tp-rank.g3 {
+        color: #d97706;
+      }
+
+      @media (max-width: 900px) {
+        .quick-stats {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .st-row {
+          grid-template-columns: 2fr 1fr 70px 70px 70px;
+        }
+        .team-row {
+          grid-template-columns: 2fr 70px 70px 70px;
+        }
+        .match-search-row {
+          grid-template-columns: 1fr 90px 80px;
+        }
+        .event-search-row {
+          grid-template-columns: 2fr 90px 90px;
+        }
+      }
+    </style>
+  </head>
+  <body data-page="Stats">
+    <div id="navbar-mount"></div>
+
+    <!-- ── Hero ───────────────────────────────────────── -->
+    <div class="stats-hero">
+      <div class="container">
+        <div class="hero-title">Stats <span>&</span> Search</div>
+        <div class="hero-sub">
+          Search players, teams, tournaments and matches with advanced filters
+        </div>
+        <div class="search-bar-wrap">
+          <input
+            class="main-search-input"
+            id="mainQ"
+            type="text"
+            placeholder="Search by name, country, team, tournament, map..."
+            onkeydown="if(event.key==='Enter')doSearch()"
+          />
+          <button class="search-btn" onclick="doSearch()">
+            <svg
+              width="15"
+              height="15"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+            >
+              <circle cx="11" cy="11" r="8" />
+              <path d="m21 21-4.35-4.35" />
+            </svg>
+            Search
+          </button>
+        </div>
+        <!-- Quick searches -->
+        <div
+          style="
+            display: flex;
+            gap: 8px;
+            margin-top: 14px;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+          "
+        >
+          <span
+            style="font-size: 12px; color: var(--text-3); align-self: center"
+            >Quick:</span
+          >
+          <button
+            class="btn btn-ghost btn-sm"
+            onclick="quickSearch('TenZ','player')"
+          >
+            TenZ
+          </button>
+          <button
+            class="btn btn-ghost btn-sm"
+            onclick="quickSearch('aspas','player')"
+          >
+            aspas
+          </button>
+          <button
+            class="btn btn-ghost btn-sm"
+            onclick="quickSearch('Sentinels','team')"
+          >
+            Sentinels
+          </button>
+          <button
+            class="btn btn-ghost btn-sm"
+            onclick="quickSearch('LOUD','team')"
+          >
+            LOUD
+          </button>
+          <button
+            class="btn btn-ghost btn-sm"
+            onclick="quickSearch('Champions','tournament')"
+          >
+            Champions Seoul
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="quickSearch('','')">
+            Show All
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Filters ─────────────────────────────────────── -->
+    <div class="filters-panel">
+      <div class="container">
+        <div class="filters-inner">
+          <!-- Type -->
+          <div class="filter-group">
+            <span class="filter-label">Show</span>
+            <select
+              class="filter-select"
+              id="f-type"
+              onchange="onFilterChange()"
+            >
+              <option value="">All</option>
+              <option value="player">Players</option>
+              <option value="team">Teams</option>
+              <option value="tournament">Tournaments</option>
+              <option value="match">Matches</option>
+            </select>
+          </div>
+          <div class="filter-divider"></div>
+          <!-- Region -->
+          <div class="filter-group">
+            <span class="filter-label">Region</span>
+            <select
+              class="filter-select"
+              id="f-region"
+              onchange="onFilterChange()"
+            >
+              <option value="">Any</option>
+              <option value="NA">NA</option>
+              <option value="EU">EU</option>
+              <option value="SA">SA</option>
+              <option value="APAC">APAC</option>
+            </select>
+          </div>
+          <!-- Country -->
+          <div class="filter-group">
+            <span class="filter-label">Country</span>
+            <input
+              class="filter-input"
+              id="f-country"
+              placeholder="e.g. Brazil"
+              onkeydown="if(event.key==='Enter')doSearch()"
+            />
+          </div>
+          <div class="filter-divider"></div>
+          <!-- Date range -->
+          <div class="filter-group">
+            <span class="filter-label">From</span>
+            <input class="filter-input" type="date" id="f-date-from" />
+          </div>
+          <div class="filter-group">
+            <span class="filter-label">To</span>
+            <input class="filter-input" type="date" id="f-date-to" />
+          </div>
+          <div class="filter-divider"></div>
+          <!-- Stat thresholds -->
+          <div class="filter-group" id="stat-filters">
+            <span class="filter-label">Min Rating</span>
+            <input
+              class="filter-input"
+              type="number"
+              id="f-min-rating"
+              placeholder="e.g. 1.2"
+              step="0.01"
+              min="0"
+              max="3"
+              style="width: 85px"
+            />
+            <span class="filter-label">Min ACS</span>
+            <input
+              class="filter-input"
+              type="number"
+              id="f-min-acs"
+              placeholder="e.g. 220"
+              min="0"
+              style="width: 85px"
+            />
+            <span class="filter-label">Min K/D</span>
+            <input
+              class="filter-input"
+              type="number"
+              id="f-min-kd"
+              placeholder="e.g. 1.1"
+              step="0.01"
+              min="0"
+              style="width: 85px"
+            />
+          </div>
+          <div class="filter-divider"></div>
+          <button class="btn btn-ghost btn-sm" onclick="clearFilters()">
+            Clear All
+          </button>
+          <button class="btn btn-primary btn-sm" onclick="doSearch()">
+            Apply
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Body ────────────────────────────────────────── -->
+    <div class="container results-wrap">
+      <!-- Default: Quick overview stats -->
+      <div id="overview-panel">
+        <div class="quick-stats" id="qs-cards">
+          <div class="loading" style="grid-column: 1/-1">
+            <div class="spinner"></div>
+          </div>
+        </div>
+
+        <div class="layout">
+          <div>
+            <!-- Top Players by Rating -->
+            <div class="result-section">
+              <div class="result-section-header">
+                <span class="section-title">⭐ Top Players by Rating</span>
+                <a
+                  href="#"
+                  onclick="quickSearch('','player');return false"
+                  style="
+                    font-size: 12px;
+                    color: var(--accent);
+                    font-family: var(--font-cond);
+                    font-weight: 700;
+                  "
+                  >View All →</a
+                >
+              </div>
+              <div class="card" id="top-players-list">
+                <div class="loading" style="padding: 24px">
+                  <div class="spinner"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Matches -->
+            <div class="result-section">
+              <div class="result-section-header">
+                <span class="section-title">⚔️ Recent Results</span>
+              </div>
+              <div class="card">
+                <div class="match-search-row hdr">
+                  <span>Date</span><span>Match</span><span>Score</span
+                  ><span>Event</span><span>Status</span>
+                </div>
+                <div id="recent-matches-list">
+                  <div class="loading" style="padding: 24px">
+                    <div class="spinner"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar: top teams -->
+          <aside>
+            <div class="sidebar-card">
+              <div class="sidebar-card-header">🏆 Top Teams</div>
+              <div id="top-teams-list">
+                <div class="loading" style="padding: 16px">
+                  <div class="spinner"></div>
+                </div>
+              </div>
+            </div>
+            <div class="sidebar-card" style="margin-top: 12px">
+              <div class="sidebar-card-header">📅 Active Tournaments</div>
+              <div id="active-tournaments-list">
+                <div class="loading" style="padding: 16px">
+                  <div class="spinner"></div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+
+      <!-- Search Results Panel (hidden until search) -->
+      <div id="results-panel" style="display: none">
+        <div
+          id="results-header"
+          style="
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+          "
+        >
+          <div>
+            <div
+              id="results-title"
+              style="
+                font-family: var(--font-head);
+                font-size: 22px;
+                font-weight: 700;
+              "
+            ></div>
+            <div
+              id="results-sub"
+              style="font-size: 13px; color: var(--text-3); margin-top: 2px"
+            ></div>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="showOverview()">
+            ← Back to Overview
+          </button>
+        </div>
+        <div id="results-body">
+          <div class="loading"><div class="spinner"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      // ── URL param support ─────────────────────────────
+      const urlP = new URLSearchParams(location.search);
+      if (urlP.get("q")) {
+        document.addEventListener("DOMContentLoaded", () => {
+          document.getElementById("mainQ").value = urlP.get("q") || "";
+          if (urlP.get("type"))
+            document.getElementById("f-type").value = urlP.get("type");
+        });
+      }
+
+      // ── Helpers ───────────────────────────────────────
+      const fmt = (v, d = 2) =>
+        v != null && v !== "" ? Number(v).toFixed(d) : "—";
+      const fmtI = (v) => (v != null && v !== "" ? Math.round(Number(v)) : "—");
+      const fmtP = (v) =>
+        v != null && v !== "" ? Components.formatPrize(v) : "—";
+
+      function showOverview() {
+        document.getElementById("results-panel").style.display = "none";
+        document.getElementById("overview-panel").style.display = "";
+      }
+
+      // ── Quick search buttons ──────────────────────────
+      function quickSearch(q, type) {
+        document.getElementById("mainQ").value = q;
+        if (type) document.getElementById("f-type").value = type;
+        doSearch();
+      }
+
+      function onFilterChange() {
+        const type = document.getElementById("f-type").value;
+        document.getElementById("stat-filters").style.display =
+          !type || type === "player" ? "" : "none";
+      }
+
+      function clearFilters() {
+        [
+          "f-type",
+          "f-region",
+          "f-country",
+          "f-date-from",
+          "f-date-to",
+          "f-min-rating",
+          "f-min-acs",
+          "f-min-kd",
+        ].forEach((id) => {
+          document.getElementById(id).value = "";
+        });
+        document.getElementById("stat-filters").style.display = "";
+      }
+
+      // ── Main search ───────────────────────────────────
+      async function doSearch() {
+        const q = document.getElementById("mainQ").value.trim();
+        const type = document.getElementById("f-type").value;
+        const region = document.getElementById("f-region").value;
+        const country = document.getElementById("f-country").value.trim();
+        const dateFrom = document.getElementById("f-date-from").value;
+        const dateTo = document.getElementById("f-date-to").value;
+        const minR = document.getElementById("f-min-rating").value;
+        const minACS = document.getElementById("f-min-acs").value;
+        const minKD = document.getElementById("f-min-kd").value;
+
+        // Build query string
+        const params = new URLSearchParams();
+        if (q) params.set("q", q);
+        if (type) params.set("type", type);
+        if (region) params.set("region", region);
+        if (country) params.set("country", country);
+        if (dateFrom) params.set("date_from", dateFrom);
+        if (dateTo) params.set("date_to", dateTo);
+        if (minR) params.set("min_rating", minR);
+        if (minACS) params.set("min_acs", minACS);
+        if (minKD) params.set("min_kd", minKD);
+
+        // Show results panel
+        document.getElementById("overview-panel").style.display = "none";
+        document.getElementById("results-panel").style.display = "";
+
+        const title = q ? `Results for "${q}"` : "All Records";
+        const sub =
+          [
+            type && `Type: ${type}`,
+            region && `Region: ${region}`,
+            country && `Country: ${country}`,
+            dateFrom && `From: ${dateFrom}`,
+            dateTo && `To: ${dateTo}`,
+          ]
+            .filter(Boolean)
+            .join(" · ") || "No extra filters";
+        document.getElementById("results-title").textContent = title;
+        document.getElementById("results-sub").textContent = sub;
+        document.getElementById("results-body").innerHTML =
+          '<div class="loading" style="padding:48px"><div class="spinner"></div><span>Searching...</span></div>';
+
+        try {
+          const data = await API.get("/stats/search?" + params.toString());
+          renderResults(data, type);
+        } catch (e) {
+          document.getElementById(
+            "results-body"
+          ).innerHTML = `<div class="no-results"><div class="icon">⚠️</div><p>${
+            e.error || "Search failed. Please try again."
+          }</p></div>`;
+        }
+      }
+
+      // ── Render results ────────────────────────────────
+      function renderResults(data, type) {
+        const body = document.getElementById("results-body");
+        const sections = [];
+
+        // Players
+        if (data.players?.length) {
+          sections.push(`
+    <div class="result-section">
+      <div class="result-section-header">
+        <span class="section-title">👤 Players</span>
+        <span class="result-count">${data.players.length} result${
+            data.players.length !== 1 ? "s" : ""
+          }</span>
+      </div>
+      <div class="card">
+        <div class="st-row hdr">
+          <span>#</span><span>Player</span><span>Team</span>
+          <span style="text-align:center">Rating</span>
+          <span style="text-align:center">ACS</span>
+          <span style="text-align:center">K/D</span>
+          <span style="text-align:center">KAST</span>
+          <span style="text-align:center">ADR</span>
+        </div>
+        ${data.players
+          .map(
+            (p, i) => `
+        <div class="st-row" onclick="location.href='/player-detail.html?id=${
+          p.player_id
+        }'">
+          <span style="font-family:var(--font-cond);font-size:14px;font-weight:700;color:var(--text-3)">${
+            i + 1
+          }</span>
+          <div style="display:flex;align-items:center;gap:8px;min-width:0">
+            <div class="nav-avatar" style="width:32px;height:32px;font-size:12px;flex-shrink:0">${(p.username ||
+              p.name ||
+              "?")[0].toUpperCase()}</div>
+            <div style="min-width:0">
+              <div style="font-family:var(--font-head);font-size:13px;font-weight:700">${
+                p.username || p.name
+              }</div>
+              <div style="font-size:11px;color:var(--text-3)">${p.name}${
+              p.country ? " · " + p.country : ""
+            }</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px;min-width:0">
+            ${
+              p.team_logo
+                ? `<img style="width:16px;height:16px;object-fit:contain" src="${p.team_logo}" onerror="this.style.display='none'" alt="">`
+                : ""
+            }
+            <span style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${
+              p.team_name || "—"
+            }</span>
+          </div>
+          <div class="stat-val hi">${fmt(p.avg_rating)}</div>
+          <div class="stat-val">${fmtI(p.avg_acs)}</div>
+          <div class="stat-val ${
+            p.avg_kd >= 1.2 ? "g" : p.avg_kd < 1 ? "r" : ""
+          }">${fmt(p.avg_kd)}</div>
+          <div class="stat-val">${
+            p.avg_kast != null ? fmtI(p.avg_kast) + "%" : "—"
+          }</div>
+          <div class="stat-val">${fmtI(p.avg_adr)}</div>
+        </div>`
+          )
+          .join("")}
+      </div>
+    </div>`);
+        }
+
+        // Teams
+        if (data.teams?.length) {
+          sections.push(`
+    <div class="result-section">
+      <div class="result-section-header">
+        <span class="section-title">🛡️ Teams</span>
+        <span class="result-count">${data.teams.length} result${
+            data.teams.length !== 1 ? "s" : ""
+          }</span>
+      </div>
+      <div class="card">
+        <div class="team-row hdr">
+          <span>#</span><span>Team</span>
+          <span style="text-align:center">Region</span>
+          <span style="text-align:center">Players</span>
+          <span style="text-align:center">Wins</span>
+          <span style="text-align:center">Losses</span>
+          <span style="text-align:center">W%</span>
+        </div>
+        ${data.teams
+          .map((t, i) => {
+            const total = (t.wins || 0) + (t.losses || 0);
+            const wr =
+              total > 0 ? Math.round(((t.wins || 0) / total) * 100) : 0;
+            return `
+          <div class="team-row" onclick="location.href='/team-detail.html?id=${
+            t.team_id
+          }'">
+            <span style="font-family:var(--font-cond);font-size:14px;font-weight:700;color:var(--text-3)">${
+              i + 1
+            }</span>
+            <div style="display:flex;align-items:center;gap:8px;min-width:0">
+              ${
+                t.logo
+                  ? `<img style="width:26px;height:26px;object-fit:contain" src="${t.logo}" onerror="this.style.display='none'" alt="">`
+                  : `<div style="width:26px;height:26px;background:var(--bg-4);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;font-family:var(--font-head);color:var(--text-3)">${t.name[0]}</div>`
+              }
+              <div style="min-width:0">
+                <div style="font-family:var(--font-head);font-size:14px;font-weight:700">${
+                  t.name
+                }</div>
+                ${
+                  t.org_name
+                    ? `<div style="font-size:11px;color:var(--text-3)">${t.org_name}</div>`
+                    : ""
+                }
+              </div>
+            </div>
+            <div style="text-align:center">${Components.regionBadge(
+              t.region
+            )}</div>
+            <div class="stat-val">${t.player_count || 0}</div>
+            <div class="stat-val g">${t.wins || 0}</div>
+            <div class="stat-val r">${t.losses || 0}</div>
+            <div class="stat-val hi">${wr}%</div>
+          </div>`;
+          })
+          .join("")}
+      </div>
+    </div>`);
+        }
+
+        // Tournaments
+        if (data.tournaments?.length) {
+          sections.push(`
+    <div class="result-section">
+      <div class="result-section-header">
+        <span class="section-title">🏆 Tournaments</span>
+        <span class="result-count">${data.tournaments.length} result${
+            data.tournaments.length !== 1 ? "s" : ""
+          }</span>
+      </div>
+      <div class="card">
+        <div class="event-search-row hdr">
+          <span>Event</span><span>Dates</span>
+          <span style="text-align:center">Teams</span><span style="text-align:center">Matches</span>
+          <span style="text-align:right">Prize Pool</span>
+          <span style="text-align:center">Status</span>
+        </div>
+        ${data.tournaments
+          .map((ev) => {
+            const statusColor =
+              ev.status === "Completed"
+                ? "var(--text-3)"
+                : ev.status === "Live"
+                ? "var(--live)"
+                : "var(--upcoming)";
+            return `
+          <div class="event-search-row" onclick="location.href='/event-detail.html?id=${
+            ev.tournament_id
+          }'">
+            <div style="min-width:0">
+              <div style="font-family:var(--font-head);font-size:14px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${
+                ev.name
+              }</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:2px">${
+                ev.type || ""
+              } ${ev.location ? "· " + ev.location : ""}</div>
+            </div>
+            <div style="font-size:12px;color:var(--text-2)">
+              ${Components.formatDate(ev.start_date)}${
+              ev.end_date
+                ? '<br><span style="color:var(--text-3)">' +
+                  Components.formatDate(ev.end_date) +
+                  "</span>"
+                : ""
+            }
+            </div>
+            <div class="stat-val">${ev.registered_teams || 0}</div>
+            <div class="stat-val">${ev.match_count || 0}</div>
+            <div style="text-align:right;font-family:var(--font-cond);font-size:14px;font-weight:700;color:var(--yellow)">${fmtP(
+              ev.prize_pool
+            )}</div>
+            <div style="text-align:center"><span style="font-family:var(--font-cond);font-size:12px;font-weight:700;color:${statusColor}">${
+              ev.status || "—"
+            }</span></div>
+          </div>`;
+          })
+          .join("")}
+      </div>
+    </div>`);
+        }
+
+        // Matches
+        if (data.matches?.length) {
+          sections.push(`
+    <div class="result-section">
+      <div class="result-section-header">
+        <span class="section-title">⚔️ Matches</span>
+        <span class="result-count">${data.matches.length} result${
+            data.matches.length !== 1 ? "s" : ""
+          }</span>
+      </div>
+      <div class="card">
+        <div class="match-search-row hdr">
+          <span>Date</span><span>Teams</span><span>Score</span><span>Tournament</span><span>Status</span>
+        </div>
+        ${data.matches
+          .map((m) => {
+            const done = m.status === "Completed";
+            const t1w = m.w_id === m.t1_id;
+            const t2w = m.w_id === m.t2_id;
+            return `
+          <div class="match-search-row" onclick="location.href='/match-detail.html?id=${
+            m.match_id
+          }'">
+            <div>
+              <div style="font-size:12px;color:var(--text-2)">${Components.formatDate(
+                m.date
+              )}</div>
+              ${
+                m.map_name
+                  ? `<div style="font-size:11px;color:var(--text-3);margin-top:1px">🗺 ${m.map_name}</div>`
+                  : ""
+              }
+            </div>
+            <div style="min-width:0">
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                <span style="font-family:var(--font-head);font-size:13px;font-weight:700;${
+                  done && !t1w ? "color:var(--text-3)" : ""
+                }">${m.t1_name}</span>
+                <span style="color:var(--text-3);font-size:11px">vs</span>
+                <span style="font-family:var(--font-head);font-size:13px;font-weight:700;${
+                  done && !t2w ? "color:var(--text-3)" : ""
+                }">${m.t2_name}</span>
+              </div>
+              ${
+                m.round
+                  ? `<div style="font-size:11px;color:var(--text-3);margin-top:1px">${m.round}</div>`
+                  : ""
+              }
+            </div>
+            <div style="font-family:var(--font-head);font-size:16px;font-weight:700">
+              ${
+                done
+                  ? `<span style="${t1w ? "" : "color:var(--text-3)"}">${
+                      m.score_team1
+                    }</span><span style="color:var(--text-3);font-size:12px;margin:0 3px">:</span><span style="${
+                      t2w ? "" : "color:var(--text-3)"
+                    }">${m.score_team2}</span>`
+                  : '<span style="color:var(--text-3);font-size:13px">—</span>'
+              }
+            </div>
+            <div style="font-size:12px;color:var(--accent);font-family:var(--font-cond);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${
+              m.tournament_name
+            }</div>
+            ${
+              m.status === "Live"
+                ? `<span class="badge badge-live">Live</span>`
+                : m.status === "Upcoming"
+                ? `<span class="badge badge-upcoming">Soon</span>`
+                : `<span class="badge badge-done">Done</span>`
+            }
+          </div>`;
+          })
+          .join("")}
+      </div>
+    </div>`);
+        }
+
+        if (!sections.length) {
+          body.innerHTML = `<div class="no-results"><div class="icon">🔍</div><p>No results found. Try different search terms or filters.</p></div>`;
+        } else {
+          body.innerHTML = sections.join("");
+        }
+      }
+
+      // ── Load overview data ────────────────────────────
+      async function loadOverview() {
+        try {
+          const [teams, players, tournaments, matchCount, matches] =
+            await Promise.all([
+              API.get("/teams"),
+              API.get("/players?limit=1000"),
+              API.get("/tournaments"),
+              API.get("/matches/count"),
+              API.get("/matches"),
+            ]);
+
+          // Quick stat cards
+          // const upcoming = tournaments.filter((e) => e.status == "ongoing").length;
+          document.getElementById("qs-cards").innerHTML = [
+            {
+              icon: "⚔️",
+              val: matchCount.total,
+              lbl: "Matches",
+              color: "var(--accent)",
+            },
+            {
+              icon: "👤",
+              val: players.length,
+              lbl: "Players",
+              color: "var(--accent)",
+            },
+            {
+              icon: "🛡️",
+              val: teams.length,
+              lbl: "Teams",
+              color: "var(--blue)",
+            },
+            {
+              icon: "🏆",
+              val: tournaments.length,
+              lbl: "Tournaments",
+              color: "var(--yellow)",
+            },
+          ]
+            .map(
+              (s) => `
+      <div class="qs-card">
+        <div class="qs-icon">${s.icon}</div>
+        <div><div class="qs-val" style="color:${s.color}">${s.val}</div><div class="qs-lbl">${s.lbl}</div></div>
+      </div>`
+            )
+            .join("");
+
+          // Top players
+          const ranked = await API.get("/rankings/players");
+          document.getElementById("top-players-list").innerHTML =
+            ranked
+              .slice(0, 8)
+              .map(
+                (p, i) => `
+      <div class="top-player-row" onclick="location.href='/player-detail.html?id=${
+        p.player_id
+      }'">
+        <div class="tp-rank ${
+          i === 0 ? "g1" : i === 1 ? "g2" : i === 2 ? "g3" : ""
+        }">${i + 1}</div>
+        <div class="nav-avatar" style="width:32px;height:32px;font-size:12px;flex-shrink:0">${(p.username ||
+          "?")[0].toUpperCase()}</div>
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--font-head);font-size:13px;font-weight:700">${
+            p.username
+          }</div>
+          <div style="font-size:11px;color:var(--text-3)">${
+            p.team_name || "Free Agent"
+          } · ${p.region || ""}</div>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="text-align:center">
+            <div style="font-family:var(--font-cond);font-size:15px;font-weight:700;color:var(--accent)">${
+              p.avg_rating ? Number(p.avg_rating).toFixed(2) : "—"
+            }</div>
+            <div style="font-size:10px;color:var(--text-3)">RTG</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-family:var(--font-cond);font-size:15px;font-weight:700">${
+              p.avg_acs ? Math.round(p.avg_acs) : "—"
+            }</div>
+            <div style="font-size:10px;color:var(--text-3)">ACS</div>
+          </div>
+          <div style="text-align:center">
+            <div style="font-family:var(--font-cond);font-size:15px;font-weight:700;color:${
+              p.avg_kd >= 1.2 ? "var(--green)" : "var(--text-1)"
+            }">${p.avg_kd ? Number(p.avg_kd).toFixed(2) : "—"}</div>
+            <div style="font-size:10px;color:var(--text-3)">K/D</div>
+          </div>
+        </div>
+      </div>`
+              )
+              .join("") +
+            `<div style="padding:10px 14px;text-align:center"><a href="#" onclick="quickSearch('','player');return false" style="font-size:12px;color:var(--accent);font-family:var(--font-cond);font-weight:700">View All Players →</a></div>`;
+
+          // Recent matches
+          document.getElementById("recent-matches-list").innerHTML =
+            matches
+              .slice(0, 6)
+              .map((m) => {
+                const t1w = m.w_id === m.t1_id;
+                const t2w = m.w_id === m.t2_id;
+                return `
+      <div class="match-search-row" onclick="location.href='/match-detail.html?id=${
+        m.match_id
+      }'">
+        <div style="font-size:12px;color:var(--text-3)">${Components.formatDate(
+          m.date
+        )}</div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <span style="font-family:var(--font-head);font-size:13px;font-weight:700;${
+            !t1w ? "color:var(--text-3)" : ""
+          }">${m.t1_name}</span>
+          <span style="color:var(--text-3);font-size:11px">vs</span>
+          <span style="font-family:var(--font-head);font-size:13px;font-weight:700;${
+            !t2w ? "color:var(--text-3)" : ""
+          }">${m.t2_name}</span>
+        </div>
+        <div style="font-family:var(--font-head);font-size:16px;font-weight:700">
+          <span style="${t1w ? "" : "color:var(--text-3)"}">${
+                  m.score_team1
+                }</span>
+          <span style="color:var(--text-3);font-size:12px;margin:0 3px">:</span>
+          <span style="${t2w ? "" : "color:var(--text-3)"}">${
+                  m.score_team2
+                }</span>
+        </div>
+        <div style="font-size:12px;color:var(--accent);font-family:var(--font-cond);font-weight:600">${
+          m.tournament_name
+        }</div>
+        <span class="badge badge-done">Done</span>
+      </div>`;
+              })
+              .join("") ||
+            '<div style="padding:24px;text-align:center;color:var(--text-3)">No recent matches</div>';
+
+          // Top teams sidebar
+          const teamRanked = await API.get("/rankings/teams");
+          document.getElementById("top-teams-list").innerHTML = teamRanked
+            .slice(0, 6)
+            .map(
+              (t, i) => `
+      <div class="sidebar-item" onclick="location.href='/team-detail.html?id=${
+        t.team_id
+      }'">
+        <span style="font-family:var(--font-cond);font-size:14px;font-weight:700;color:var(--text-3);width:22px">${
+          i + 1
+        }</span>
+        ${
+          t.logo
+            ? `<img style="width:22px;height:22px;object-fit:contain;flex-shrink:0" src="${t.logo}" onerror="this.style.display='none'" alt="">`
+            : ""
+        }
+        <span style="font-family:var(--font-head);font-size:13px;font-weight:700;flex:1">${
+          t.name
+        }</span>
+        <span style="font-family:var(--font-cond);font-size:12px;color:var(--text-3)">${
+          t.wins || 0
+        }W ${t.losses || 0}L</span>
+      </div>`
+            )
+            .join("");
+
+          // Active tournaments
+          document.getElementById("active-events-list").innerHTML =
+            tournaments
+              .filter((e) => e.status !== "Completed")
+              .slice(0, 4)
+              .map(
+                (ev) => `
+      <div class="sidebar-item" onclick="location.href='/event-detail.html?id=${
+        ev.tournament_id
+      }'">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--font-head);font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${
+            ev.name
+          }</div>
+          <div style="font-size:11px;color:var(--upcoming);margin-top:2px">${
+            ev.status
+          } · ${Components.formatPrize(ev.prize_pool)}</div>
+        </div>
+      </div>`
+              )
+              .join("") ||
+            '<div style="padding:16px;color:var(--text-3);font-size:12px;text-align:center">No active tournaments</div>';
+        } catch (e) {
+          console.error(e);
+        }
+      }
+
+      // ── Auto-search if URL params ─────────────────────
+      window.addEventListener("load", () => {
+        loadOverview();
+        if (urlP.get("q") || urlP.get("type")) {
+          setTimeout(doSearch, 300);
+        }
+      });
+    </script>
+  </body>
+</html>

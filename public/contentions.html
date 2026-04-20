@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Contentions & Bans — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      /* ── Status chips ────────────────────────────── */
+      .cs {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 10px;
+        border-radius: 3px;
+        font-family: var(--font-cond);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+      .cs-pending {
+        background: rgba(251, 191, 36, 0.1);
+        color: var(--yellow);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+      }
+      .cs-resolved {
+        background: rgba(74, 222, 128, 0.1);
+        color: var(--green);
+        border: 1px solid rgba(74, 222, 128, 0.3);
+      }
+      .cs-review {
+        background: rgba(96, 165, 250, 0.1);
+        color: #60a5fa;
+        border: 1px solid rgba(96, 165, 250, 0.3);
+      }
+      .cs-banned {
+        background: rgba(248, 113, 113, 0.1);
+        color: var(--red);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+      }
+
+      /* ── Filer chip ──────────────────────────────── */
+      .filer-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        background: var(--bg-4);
+      }
+      .filer-player {
+        border-color: rgba(167, 139, 250, 0.3);
+        background: rgba(167, 139, 250, 0.08);
+        color: #a78bfa;
+      }
+      .filer-team {
+        border-color: rgba(96, 165, 250, 0.3);
+        background: rgba(96, 165, 250, 0.08);
+        color: #60a5fa;
+      }
+      .filer-coach {
+        border-color: rgba(251, 191, 36, 0.3);
+        background: rgba(251, 191, 36, 0.08);
+        color: var(--yellow);
+      }
+
+      /* ── Contention card ─────────────────────────── */
+      .c-card {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        margin-bottom: 12px;
+        transition: border-color var(--trans);
+      }
+      .c-card:hover {
+        border-color: var(--border-2);
+      }
+      .c-head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 16px;
+        border-bottom: 1px solid var(--border);
+        flex-wrap: wrap;
+      }
+      .c-body {
+        padding: 16px;
+      }
+      .c-desc {
+        font-size: 13px;
+        color: var(--text-2);
+        line-height: 1.7;
+        margin-bottom: 12px;
+      }
+      .c-meta {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        font-size: 12px;
+        color: var(--text-3);
+      }
+
+      /* ── Ban cards ───────────────────────────────── */
+      .ban-box {
+        background: rgba(248, 113, 113, 0.06);
+        border: 1px solid rgba(248, 113, 113, 0.25);
+        border-radius: var(--radius-lg);
+        padding: 14px;
+        margin-top: 12px;
+      }
+      .team-ban-box {
+        background: rgba(251, 191, 36, 0.05);
+        border: 1px solid rgba(251, 191, 36, 0.25);
+        border-radius: var(--radius-lg);
+        padding: 14px;
+        margin-top: 10px;
+      }
+
+      /* ── Ban table rows ──────────────────────────── */
+      .ban-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 130px 80px;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        transition: background var(--trans);
+      }
+      .ban-row:hover {
+        background: var(--bg-3);
+      }
+      .ban-row:last-child {
+        border-bottom: none;
+      }
+      .ban-row.hdr {
+        background: var(--bg-3);
+        cursor: default;
+        font-family: var(--font-cond);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+      }
+      .team-ban-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr 130px 100px;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        transition: background var(--trans);
+      }
+      .team-ban-row:hover {
+        background: var(--bg-3);
+      }
+      .team-ban-row:last-child {
+        border-bottom: none;
+      }
+      .team-ban-row.hdr {
+        background: var(--bg-3);
+        cursor: default;
+        font-family: var(--font-cond);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+      }
+
+      .bt-chip {
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-family: var(--font-cond);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .bt-player {
+        background: rgba(248, 113, 113, 0.12);
+        color: var(--red);
+      }
+      .bt-team_ban {
+        background: rgba(251, 191, 36, 0.12);
+        color: var(--yellow);
+      }
+      .bt-tournament {
+        background: rgba(96, 165, 250, 0.12);
+        color: #60a5fa;
+      }
+      .bt-warning {
+        background: rgba(74, 222, 128, 0.12);
+        color: var(--green);
+      }
+      .bt-permanent {
+        background: rgba(248, 113, 113, 0.25);
+        color: var(--red);
+        border: 1px solid rgba(248, 113, 113, 0.5);
+      }
+
+      /* ── Filer select ────────────────────────────── */
+      .filer-select-group {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-bottom: 16px;
+      }
+      .filer-btn {
+        padding: 7px 16px;
+        border-radius: var(--radius);
+        font-family: var(--font-cond);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--bg-3);
+        color: var(--text-2);
+        transition: all var(--trans);
+      }
+      .filer-btn:hover {
+        border-color: var(--border-2);
+        color: var(--text-1);
+      }
+      .filer-btn.active {
+        background: var(--accent-dim);
+        border-color: rgba(255, 70, 85, 0.4);
+        color: var(--accent);
+      }
+
+      /* ── History timeline ────────────────────────── */
+      .history-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .history-item:last-child {
+        border-bottom: none;
+      }
+      .h-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex-shrink: 0;
+        margin-top: 5px;
+      }
+
+      /* ── Modal ───────────────────────────────────── */
+      .modal-ov {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        z-index: 500;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .modal-ov.open {
+        display: flex;
+      }
+      .modal-bx {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        max-width: 580px;
+        width: 100%;
+        max-height: 82vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+      }
+      .modal-close {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        background: none;
+        border: none;
+        color: var(--text-3);
+        font-size: 22px;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .modal-close:hover {
+        color: var(--text-1);
+      }
+    </style>
+  </head>
+  <body data-page="">
+    <div id="navbar-mount"></div>
+
+    <div class="page-banner">
+      <div class="container">
+        <div class="page-banner-inner">
+          <div>
+            <div class="page-title">Contentions & Bans</div>
+            <div class="page-subtitle">
+              File complaints as a player, team, or coach · View active bans ·
+              Appeal decisions
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container layout-full">
+      <div class="filter-tabs" id="main-tabs" style="margin-bottom: 20px">
+        <button class="filter-tab active" onclick="showTab(this,'bans')">
+          Active Bans
+        </button>
+        <button class="filter-tab" onclick="showTab(this,'my')">
+          File / My Contentions
+        </button>
+      </div>
+
+      <!-- ── Active Bans ──────────────────────────── -->
+      <div id="tab-bans">
+        <!-- Sub-tabs for player vs team bans -->
+        <div class="filter-tabs" id="ban-sub-tabs" style="margin-bottom: 16px">
+          <button
+            class="filter-tab active"
+            onclick="showBanSub(this,'player-bans')"
+          >
+            Player Bans
+          </button>
+          <button class="filter-tab" onclick="showBanSub(this,'team-bans')">
+            Team Bans
+          </button>
+        </div>
+
+        <!-- Player Bans -->
+        <div id="player-bans">
+          <div class="section-header">
+            <span class="section-title">🔴 Player Bans</span>
+          </div>
+          <div class="card">
+            <div class="ban-row hdr">
+              <span>Player</span><span>Type</span><span>Duration</span
+              ><span>Period</span><span>Game</span>
+            </div>
+            <div id="player-bans-list">
+              <div class="loading" style="padding: 24px">
+                <div class="spinner"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Bans -->
+        <div id="team-bans" style="display: none">
+          <div class="section-header">
+            <span class="section-title">🟡 Team Bans</span>
+          </div>
+          <div class="card">
+            <div class="team-ban-row hdr">
+              <span>Team</span><span>Type</span><span>Scope</span
+              ><span>Period</span><span>Roster?</span>
+            </div>
+            <div id="team-bans-list">
+              <div class="loading" style="padding: 24px">
+                <div class="spinner"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── My Contentions / File ────────────────── -->
+      <div id="tab-my" style="display: none">
+        <!-- Not logged in -->
+        <div id="not-logged-in" style="display: none">
+          <div class="card" style="padding: 48px; text-align: center">
+            <div style="font-size: 36px; margin-bottom: 12px">🔒</div>
+            <div
+              style="
+                font-family: var(--font-head);
+                font-size: 20px;
+                font-weight: 700;
+                margin-bottom: 8px;
+              "
+            >
+              Login Required
+            </div>
+            <div
+              style="color: var(--text-3); margin-bottom: 20px; font-size: 14px"
+            >
+              You need a Player account to file contentions and view your
+              history.
+            </div>
+            <a href="/login.html" class="btn btn-primary">Login</a>
+            <a
+              href="/register.html"
+              class="btn btn-ghost"
+              style="margin-left: 8px"
+              >Register</a
+            >
+          </div>
+        </div>
+
+        <!-- Player panel -->
+        <div id="player-panel" style="display: none">
+          <!-- File New Contention -->
+          <div
+            style="
+              background: var(--bg-2);
+              border: 1px solid var(--border);
+              border-radius: var(--radius-lg);
+              padding: 24px;
+              margin-bottom: 24px;
+            "
+          >
+            <div
+              style="
+                font-family: var(--font-head);
+                font-size: 18px;
+                font-weight: 700;
+                margin-bottom: 4px;
+              "
+            >
+              📝 File a Contention
+            </div>
+            <div
+              style="font-size: 13px; color: var(--text-2); margin-bottom: 18px"
+            >
+              Report rule violations or misconduct. You can file on behalf of
+              yourself, your team, or your coach.
+            </div>
+
+            <div class="form-error" id="nc-error"></div>
+            <div class="form-success" id="nc-success"></div>
+
+            <!-- Who is filing? -->
+            <div style="margin-bottom: 16px">
+              <div
+                style="
+                  font-family: var(--font-cond);
+                  font-size: 11px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.8px;
+                  color: var(--text-3);
+                  margin-bottom: 8px;
+                "
+              >
+                Filing On Behalf Of
+              </div>
+              <div class="filer-select-group">
+                <button
+                  class="filer-btn active"
+                  onclick="setFiler(this,'player')"
+                >
+                  👤 Myself (Player)
+                </button>
+                <button class="filer-btn" onclick="setFiler(this,'team')">
+                  🛡️ My Team
+                </button>
+                <button class="filer-btn" onclick="setFiler(this,'coach')">
+                  🎯 Our Coach
+                </button>
+              </div>
+              <input type="hidden" id="nc-filer-type" value="player" />
+              <!-- Team / Coach selector (shown conditionally) -->
+              <div id="nc-team-wrap" style="display: none; margin-top: 8px">
+                <label class="form-label">Select Your Team</label>
+                <select class="form-select" id="nc-team-id">
+                  <option value="">Loading teams...</option>
+                </select>
+              </div>
+              <div id="nc-coach-wrap" style="display: none; margin-top: 8px">
+                <label class="form-label">Select Coach</label>
+                <select class="form-select" id="nc-coach-id">
+                  <option value="">Loading coaches...</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label"
+                >Game <span style="color: var(--accent)">*</span></label
+              >
+              <select class="form-select" id="nc-game-id">
+                <option value="">Select game this contention is for...</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Filed Against (Target)</label>
+              <div
+                style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px"
+              >
+                <select class="form-select" id="nc-target-player">
+                  <option value="">Select Target Player (Optional)...</option>
+                </select>
+                <select class="form-select" id="nc-target-team">
+                  <option value="">Select Target Team (Optional)...</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label"
+                >Reason <span style="color: var(--accent)">*</span></label
+              >
+              <select
+                class="form-select"
+                id="nc-reason"
+                onchange="toggleCustomReason(this)"
+              >
+                <option value="">Select a reason...</option>
+                <option>Match Fixing Allegation</option>
+                <option>Cheating / Unauthorized Software</option>
+                <option>Unsportsmanlike Conduct</option>
+                <option>Verbal Abuse / Harassment</option>
+                <option>Rule Violation</option>
+                <option>Contract Dispute</option>
+                <option>Player Poaching</option>
+                <option>Ban Appeal Request</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group" id="nc-custom-wrap" style="display: none">
+              <label class="form-label">Specify Reason</label>
+              <input
+                class="form-input"
+                id="nc-custom"
+                placeholder="Describe your reason briefly..."
+              />
+            </div>
+            <div class="form-group">
+              <label class="form-label"
+                >Detailed Description
+                <span style="color: var(--accent)">*</span></label
+              >
+              <textarea
+                class="form-input"
+                id="nc-desc"
+                rows="5"
+                placeholder="Provide full details: what happened, when, who was involved, evidence links, match IDs..."
+              ></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="fileContention()">
+              Submit Contention
+            </button>
+          </div>
+
+          <!-- My Contentions List -->
+          <div class="section-header">
+            <span class="section-title">📋 My Contentions</span>
+            <span
+              id="my-count"
+              style="font-size: 12px; color: var(--text-3)"
+            ></span>
+          </div>
+          <div id="my-list">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal-ov" id="detail-modal">
+      <div class="modal-bx">
+        <button
+          class="modal-close"
+          onclick="this.closest('.modal-ov').classList.remove('open')"
+        >
+          ×
+        </button>
+        <div id="detail-body"></div>
+      </div>
+    </div>
+
+    <!-- Appeal Modal -->
+    <div class="modal-ov" id="appeal-modal">
+      <div class="modal-bx" style="max-width: 500px">
+        <button
+          class="modal-close"
+          onclick="this.closest('.modal-ov').classList.remove('open')"
+        >
+          ×
+        </button>
+        <div
+          style="
+            font-family: var(--font-head);
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 4px;
+          "
+        >
+          ⚖️ File an Appeal
+        </div>
+        <div style="font-size: 13px; color: var(--text-2); margin-bottom: 18px">
+          Challenge the ban or ruling. Provide clear grounds.
+        </div>
+        <input type="hidden" id="ap-cid" />
+        <div class="form-error" id="ap-error"></div>
+        <div class="form-success" id="ap-success"></div>
+        <div class="form-group">
+          <label class="form-label">Appeal Subject *</label>
+          <input
+            class="form-input"
+            id="ap-subject"
+            placeholder="e.g. Appeal: Tournament Ban — August 2024"
+          />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Grounds for Appeal *</label>
+          <textarea
+            class="form-input"
+            id="ap-desc"
+            rows="5"
+            placeholder="Why should the decision be overturned? Include any new evidence..."
+          ></textarea>
+        </div>
+        <div style="display: flex; gap: 10px; margin-top: 16px">
+          <button class="btn btn-primary" onclick="submitAppeal()">
+            Submit Appeal
+          </button>
+          <button
+            class="btn btn-ghost"
+            onclick="document.getElementById('appeal-modal').classList.remove('open')"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      const user = API.getUser();
+
+      document.addEventListener("DOMContentLoaded", () => {
+        loadBans();
+        if (user && user.role === "Player") {
+          document.getElementById("player-panel").style.display = "";
+          loadMyTeamCoach();
+          loadMyContentions();
+        } else if (!user) {
+          document.getElementById("not-logged-in").style.display = "";
+        } else {
+          // Admin
+          document.getElementById("player-panel").style.display = "";
+          document.getElementById("player-panel").innerHTML = `
+      <div class="card" style="padding:36px;text-align:center">
+        <div style="font-size:36px;margin-bottom:12px">🛡️</div>
+        <div style="font-family:var(--font-head);font-size:18px;margin-bottom:8px">Admin — Manage Contentions</div>
+        <a href="/admin.html" class="btn btn-primary">Open Admin Panel</a>
+      </div>`;
+        }
+      });
+
+      function showTab(btn, id) {
+        document
+          .querySelectorAll("#main-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        ["bans", "my"].forEach(
+          (t) =>
+            (document.getElementById("tab-" + t).style.display =
+              t === id ? "" : "none")
+        );
+      }
+
+      function showBanSub(btn, id) {
+        document
+          .querySelectorAll("#ban-sub-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        ["player-bans", "team-bans"].forEach(
+          (t) =>
+            (document.getElementById(t).style.display = t === id ? "" : "none")
+        );
+      }
+
+      // ── Load bans ─────────────────────────────────────
+      async function loadBans() {
+        const pbList = document.getElementById("player-bans-list");
+        const tbList = document.getElementById("team-bans-list");
+
+        try {
+          const data = await API.get("/contentions/bans/active");
+
+          // 1. Render Player Bans
+          if (!data.player_bans || data.player_bans.length === 0) {
+            pbList.innerHTML =
+              '<div style="padding:32px;text-align:center;color:var(--text-3)">No active player bans 🎉</div>';
+          } else {
+            pbList.innerHTML = data.player_bans
+              .map((b) => {
+                const btClass =
+                  "bt-" + (b.ban_type || "warning").replace(/ /g, "_");
+                return `
+        <div class="ban-row">
+          <div>
+            <div style="font-family:var(--font-head);font-size:14px;font-weight:700">${
+              b.player_name || "Unknown"
+            }</div>
+            <div style="font-size:11px;color:var(--text-3)">@${
+              b.player_username || "—"
+            }</div>
+          </div>
+          <span class="bt-chip ${btClass}">${(b.ban_type || "").replace(
+                  /_/g,
+                  " "
+                )}</span>
+          <span style="font-family:var(--font-cond);font-size:14px;font-weight:700">${
+            b.duration ? b.duration + " days" : "Indefinite"
+          }</span>
+          <div style="font-size:12px;color:var(--text-2)">
+            ${Components.formatDate(b.start_date)}
+            ${
+              b.end_date
+                ? `<br><span style="color:var(--text-3)">→ ${Components.formatDate(
+                    b.end_date
+                  )}</span>`
+                : '<br><span style="color:var(--red)">Permanent</span>'
+            }
+          </div>
+          <span style="font-size:12px;color:var(--text-3)">${
+            b.game_name || "All"
+          }</span>
+        </div>`;
+              })
+              .join("");
+          }
+
+          // 2. Render Team Bans
+          if (!data.team_bans || data.team_bans.length === 0) {
+            tbList.innerHTML =
+              '<div style="padding:32px;text-align:center;color:var(--text-3)">No active team bans 🎉</div>';
+          } else {
+            tbList.innerHTML = data.team_bans
+              .map(
+                (b) => `
+      <div class="team-ban-row" onclick="location.href='/team-detail.html?id=${
+        b.team_id
+      }'" style="cursor:pointer">
+        <div style="display:flex;align-items:center;gap:8px">
+          ${
+            b.team_logo
+              ? `<img style="width:22px;height:22px;object-fit:contain" src="${b.team_logo}" onerror="this.style.display='none'" alt="">`
+              : ""
+          }
+          <div>
+            <div style="font-family:var(--font-head);font-size:14px;font-weight:700">${
+              b.team_name || "—"
+            }</div>
+            ${Components.regionBadge(b.team_region)}
+          </div>
+        </div>
+        <span class="bt-chip bt-team_ban">TEAM BAN</span>
+        <span style="font-family:var(--font-cond);font-size:12px;font-weight:700;color:var(--yellow)">${
+          b.ban_scope || "tournament"
+        }</span>
+        <div style="font-size:12px;color:var(--text-2)">
+          ${Components.formatDate(b.start_date)}
+          ${
+            b.end_date
+              ? `<br><span style="color:var(--text-3)">→ ${Components.formatDate(
+                  b.end_date
+                )}</span>`
+              : '<br><span style="color:var(--red)">Permanent</span>'
+          }
+        </div>
+        <span style="font-family:var(--font-cond);font-size:12px;font-weight:700;color:${
+          b.affects_roster ? "var(--red)" : "var(--text-3)"
+        }">${b.affects_roster ? "Yes" : "No"}</span>
+      </div>`
+              )
+              .join("");
+          }
+        } catch (e) {
+          console.error("Critical error in loadBans:", e);
+          pbList.innerHTML =
+            '<div style="padding:24px;color:var(--text-3)">Failed to load data. Please refresh or check console.</div>';
+          tbList.innerHTML =
+            '<div style="padding:24px;color:var(--text-3)">Connection error.</div>';
+        }
+      }
+
+      // ── Load my team + coach (for filer selector) ─────
+      async function loadMyTeamCoach() {
+        try {
+          // 1. Fetch data from new public routes
+          const [games, players, teams, authData] = await Promise.all([
+            API.get("/contentions/games/list").catch(() => []),
+            API.get("/contentions/targets/players").catch(() => []),
+            API.get("/contentions/targets/teams").catch(() => []),
+            API.get("/auth/me").catch(() => ({})),
+          ]);
+
+          // 2. Populate Game Dropdown
+          const gameSel = document.getElementById("nc-game-id");
+          const icons = { Valorant: "🎯", BGMI: "🔫", CS2: "💣" };
+          if (gameSel) {
+            gameSel.innerHTML =
+              '<option value="">Select game...</option>' +
+              games
+                .map(
+                  (g) =>
+                    `<option value="${g.game_id}">${icons[g.name] || "🎮"} ${
+                      g.name
+                    }</option>`
+                )
+                .join("");
+          }
+
+          // 3. Populate Target Dropdowns
+          const tpSel = document.getElementById("nc-target-player");
+          if (tpSel) {
+            tpSel.innerHTML =
+              '<option value="">Select Target Player (Optional)...</option>' +
+              players
+                .map(
+                  (p) =>
+                    `<option value="${p.player_id}">${p.username} (${p.name})</option>`
+                )
+                .join("");
+          }
+
+          const ttSel = document.getElementById("nc-target-team");
+          if (ttSel) {
+            ttSel.innerHTML =
+              '<option value="">Select Target Team (Optional)...</option>' +
+              teams
+                .map((t) => `<option value="${t.team_id}">${t.name}</option>`)
+                .join("");
+          }
+
+          // 4. Populate Filer Team/Coach Dropdowns
+          const pid = authData.player?.player_id;
+          if (pid) {
+            const pdata = await API.get("/players/" + pid).catch(() => ({}));
+            const teamSel = document.getElementById("nc-team-id");
+            const coachSel = document.getElementById("nc-coach-id");
+
+            if (pdata.team_id && pdata.team_name && teamSel) {
+              teamSel.innerHTML = `<option value="${pdata.team_id}">${pdata.team_name}</option>`;
+            } else if (teamSel) {
+              teamSel.innerHTML = '<option value="">Not on a team</option>';
+            }
+
+            const coaches = await API.get("/sponsors/coaches/list").catch(
+              () => []
+            );
+            if (coachSel) {
+              coachSel.innerHTML =
+                '<option value="">Select coach...</option>' +
+                coaches
+                  .map(
+                    (c) =>
+                      `<option value="${c.coach_id}">${c.name}${
+                        c.team_name ? " (" + c.team_name + ")" : ""
+                      }</option>`
+                  )
+                  .join("");
+            }
+          }
+        } catch (e) {
+          console.error("Form load error:", e);
+        }
+      }
+
+      async function loadMyContentions() {
+        const listEl = document.getElementById("my-list");
+        try {
+          const list = await API.get("/contentions");
+          document.getElementById("my-count").textContent =
+            list.length + " filed";
+
+          if (!list.length) {
+            listEl.innerHTML =
+              '<div style="padding:32px;text-align:center;color:var(--text-3)">No contentions filed yet.</div>';
+            return;
+          }
+
+          listEl.innerHTML = list
+            .map((c) => {
+              const filerClass = "filer-" + c.filer_type;
+              const filerLabel =
+                c.filer_type === "player"
+                  ? `👤 ${
+                      c.filer_player_name || c.filer_player_username || "Player"
+                    }`
+                  : c.filer_type === "team"
+                  ? `🛡️ ${c.filer_team_name || "Team"}`
+                  : `🎯 ${c.filer_coach_name || "Coach"}`;
+              const hasBan = !!c.ban_id;
+              const hasTeamBan = !!c.banned_team_id;
+              return `
+      <div class="c-card">
+        <div class="c-head">
+          <div>
+            <div style="font-family:var(--font-cond);font-size:11px;color:var(--text-3);font-weight:700">#${
+              c.contention_id
+            } · ${Components.formatDate(c.created_at)}</div>
+            <div style="font-family:var(--font-head);font-size:15px;font-weight:700;margin-top:2px">${
+              c.reason
+            }</div>
+            <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+              <span class="filer-chip ${filerClass}">${filerLabel}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start">
+            <span class="cs ${statusChipClass(c.status_name)}">${
+                c.status_name || "Pending"
+              }</span>
+            ${hasBan ? `<span class="cs cs-banned">⛔ Player Ban</span>` : ""}
+            ${
+              hasTeamBan
+                ? `<span class="cs" style="background:rgba(251,191,36,.1);color:var(--yellow);border:1px solid rgba(251,191,36,.3)">🟡 Team Ban</span>`
+                : ""
+            }
+            <button class="btn btn-ghost btn-sm" onclick="viewDetail(${
+              c.contention_id
+            })">Details</button>
+          </div>
+        </div>
+        <div class="c-body">
+          ${
+            c.description
+              ? `<div class="c-desc">${
+                  c.description.length > 200
+                    ? c.description.slice(0, 200) + "…"
+                    : c.description
+                }</div>`
+              : ""
+          }
+          <div class="c-meta">
+            ${
+              c.resolved_at
+                ? `<span>✅ Resolved ${Components.formatDate(
+                    c.resolved_at
+                  )}</span>`
+                : "<span>⏳ Awaiting review</span>"
+            }
+          </div>
+          ${
+            hasBan
+              ? `<div class="ban-box">
+            <div style="font-family:var(--font-head);font-size:13px;font-weight:700;color:var(--red);margin-bottom:8px">⛔ Ban Issued</div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px">
+              <span>Type: <strong>${(c.ban_type || "").replace(
+                /_/g,
+                " "
+              )}</strong></span>
+              ${
+                c.ban_start
+                  ? `<span>From: <strong>${Components.formatDate(
+                      c.ban_start
+                    )}</strong></span>`
+                  : ""
+              }
+              ${
+                c.ban_end
+                  ? `<span>Until: <strong>${Components.formatDate(
+                      c.ban_end
+                    )}</strong></span>`
+                  : '<span style="color:var(--red)">Permanent</span>'
+              }
+            </div>
+            <button class="btn btn-outline-accent btn-sm" style="margin-top:10px" onclick="openAppeal(${
+              c.contention_id
+            })">⚖️ File Appeal</button>
+          </div>`
+              : ""
+          }
+        </div>
+      </div>`;
+            })
+            .join("");
+        } catch (e) {
+          listEl.innerHTML =
+            '<div style="padding:24px;color:var(--text-3)">Failed to load. Make sure you are logged in as a Player.</div>';
+        }
+      }
+
+      // ── Filer type toggle ─────────────────────────────
+      function setFiler(btn, type) {
+        document
+          .querySelectorAll(".filer-btn")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        document.getElementById("nc-filer-type").value = type;
+        document.getElementById("nc-team-wrap").style.display =
+          type === "team" ? "" : "none";
+        document.getElementById("nc-coach-wrap").style.display =
+          type === "coach" ? "" : "none";
+      }
+
+      function toggleCustomReason(sel) {
+        document.getElementById("nc-custom-wrap").style.display =
+          sel.value === "other" ? "" : "none";
+      }
+
+      // ── File contention ───────────────────────────────
+      async function fileContention() {
+        const errEl = document.getElementById("nc-error");
+        const sucEl = document.getElementById("nc-success");
+        errEl.style.display = "none";
+        sucEl.style.display = "none";
+
+        const filerType = document.getElementById("nc-filer-type").value;
+        const teamId = document.getElementById("nc-team-id").value || undefined;
+        const coachId =
+          document.getElementById("nc-coach-id").value || undefined;
+        const reasonSel = document.getElementById("nc-reason").value;
+        const custom = document.getElementById("nc-custom").value.trim();
+        const reason = reasonSel === "other" ? custom : reasonSel;
+        const desc = document.getElementById("nc-desc").value.trim();
+
+        if (!reason) {
+          errEl.textContent = "Please select or enter a reason.";
+          errEl.style.display = "block";
+          return;
+        }
+        if (!desc || desc.length < 20) {
+          errEl.textContent =
+            "Please provide a detailed description (min 20 chars).";
+          errEl.style.display = "block";
+          return;
+        }
+        if (filerType === "team" && !teamId) {
+          errEl.textContent = "Please select your team.";
+          errEl.style.display = "block";
+          return;
+        }
+        if (filerType === "coach" && !coachId) {
+          errEl.textContent = "Please select the coach.";
+          errEl.style.display = "block";
+          return;
+        }
+
+        const gameId = document.getElementById("nc-game-id").value;
+        if (!gameId) {
+          errEl.textContent =
+            "Please select which game this contention is for.";
+          errEl.style.display = "block";
+          return;
+        }
+
+        const targetPlayer = document.getElementById("nc-target-player").value;
+        const targetTeam = document.getElementById("nc-target-team").value;
+
+        try {
+          const r = await API.post("/contentions", {
+            reason,
+            description: desc,
+            filer_type: filerType,
+            team_id: filerType === "team" ? parseInt(teamId) : undefined,
+            coach_id: filerType === "coach" ? parseInt(coachId) : undefined,
+            game_id: parseInt(gameId),
+            target_player_id: targetPlayer ? parseInt(targetPlayer) : null,
+            target_team_id: targetTeam ? parseInt(targetTeam) : null,
+          });
+
+          sucEl.textContent = `✅ Contention #${r.contention_id} filed! Admin will review it shortly.`;
+          sucEl.style.display = "block";
+
+          // Reset Form
+          document.getElementById("nc-reason").value = "";
+          document.getElementById("nc-desc").value = "";
+          document.getElementById("nc-custom").value = "";
+          document.getElementById("nc-custom-wrap").style.display = "none";
+          document.getElementById("nc-target-player").value = "";
+          document.getElementById("nc-target-team").value = "";
+
+          await loadMyContentions();
+        } catch (e) {
+          errEl.textContent = e.error || "Failed to file contention.";
+          errEl.style.display = "block";
+        }
+      }
+
+      // ── Load my contentions ───────────────────────────
+      async function loadMyContentions() {
+        try {
+          const list = await API.get("/contentions");
+          document.getElementById("my-count").textContent =
+            list.length + " filed";
+          const el = document.getElementById("my-list");
+          if (!list.length) {
+            el.innerHTML =
+              '<div style="padding:32px;text-align:center;color:var(--text-3)">No contentions filed yet.</div>';
+            return;
+          }
+          el.innerHTML = list
+            .map((c) => {
+              const filerClass = "filer-" + c.filer_type;
+              const filerLabel =
+                c.filer_type === "player"
+                  ? `👤 ${
+                      c.filer_player_name || c.filer_player_username || "Player"
+                    }`
+                  : c.filer_type === "team"
+                  ? `🛡️ ${c.filer_team_name || "Team"}`
+                  : `🎯 ${c.filer_coach_name || "Coach"}`;
+              const hasBan = !!c.ban_id;
+              const hasTeamBan = !!c.banned_team_id;
+              return `
+      <div class="c-card">
+        <div class="c-head">
+          <div>
+            <div style="font-family:var(--font-cond);font-size:11px;color:var(--text-3);font-weight:700">#${
+              c.contention_id
+            } · ${Components.formatDate(c.created_at)}</div>
+            <div style="font-family:var(--font-head);font-size:15px;font-weight:700;margin-top:2px">${
+              c.reason
+            }</div>
+            <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap">
+              <span class="filer-chip ${filerClass}">${filerLabel}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start">
+            <span class="cs ${statusChipClass(c.status_name)}">${
+                c.status_name || "Pending"
+              }</span>
+            ${hasBan ? `<span class="cs cs-banned">⛔ Player Ban</span>` : ""}
+            ${
+              hasTeamBan
+                ? `<span class="cs" style="background:rgba(251,191,36,.1);color:var(--yellow);border:1px solid rgba(251,191,36,.3)">🟡 Team Ban</span>`
+                : ""
+            }
+            <button class="btn btn-ghost btn-sm" onclick="viewDetail(${
+              c.contention_id
+            })">Details</button>
+          </div>
+        </div>
+        <div class="c-body">
+          ${
+            c.description
+              ? `<div class="c-desc">${
+                  c.description.length > 200
+                    ? c.description.slice(0, 200) + "…"
+                    : c.description
+                }</div>`
+              : ""
+          }
+          <div class="c-meta">
+            ${
+              c.resolved_at
+                ? `<span>✅ Resolved ${Components.formatDate(
+                    c.resolved_at
+                  )}</span>`
+                : "<span>⏳ Awaiting review</span>"
+            }
+          </div>
+          ${
+            hasBan
+              ? `<div class="ban-box">
+            <div style="font-family:var(--font-head);font-size:13px;font-weight:700;color:var(--red);margin-bottom:8px">⛔ Ban Issued</div>
+            <div style="display:flex;gap:14px;flex-wrap:wrap;font-size:13px">
+              <span>Type: <strong>${(c.ban_type || "").replace(
+                /_/g,
+                " "
+              )}</strong></span>
+              ${
+                c.ban_start
+                  ? `<span>From: <strong>${Components.formatDate(
+                      c.ban_start
+                    )}</strong></span>`
+                  : ""
+              }
+              ${
+                c.ban_end
+                  ? `<span>Until: <strong>${Components.formatDate(
+                      c.ban_end
+                    )}</strong></span>`
+                  : '<span style="color:var(--red)">Permanent</span>'
+              }
+            </div>
+            <button class="btn btn-outline-accent btn-sm" style="margin-top:10px" onclick="openAppeal(${
+              c.contention_id
+            })">⚖️ File Appeal</button>
+          </div>`
+              : ""
+          }
+        </div>
+      </div>`;
+            })
+            .join("");
+        } catch (e) {
+          document.getElementById("my-list").innerHTML =
+            '<div style="padding:24px;color:var(--text-3)">Failed to load. Make sure you are logged in as a Player.</div>';
+        }
+      }
+
+      function statusChipClass(name) {
+        if (!name) return "cs-pending";
+        const n = name.toLowerCase();
+        return n.includes("pend")
+          ? "cs-pending"
+          : n.includes("resolv")
+          ? "cs-resolved"
+          : n.includes("review")
+          ? "cs-review"
+          : "cs-pending";
+      }
+
+      // ── Detail modal ──────────────────────────────────
+      async function viewDetail(id) {
+        document.getElementById("detail-modal").classList.add("open");
+        document.getElementById("detail-body").innerHTML = Components.loading();
+        try {
+          const c = await API.get("/contentions/" + id);
+          const filerLine =
+            c.filer_type === "player"
+              ? `${c.filer_player_name} (@${c.filer_player_username})`
+              : c.filer_type === "team"
+              ? `🛡️ ${c.filer_team_name}`
+              : `🎯 ${c.filer_coach_name}`;
+
+          document.getElementById("detail-body").innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+      <div>
+        <div style="font-family:var(--font-cond);font-size:11px;color:var(--text-3)">CONTENTION #${
+          c.contention_id
+        }</div>
+        <div style="font-family:var(--font-head);font-size:20px;font-weight:700;margin-top:2px">${
+          c.reason
+        }</div>
+        <div style="font-size:12px;color:var(--text-3);margin-top:4px">Filed by: <strong>${filerLine}</strong> · ${Components.formatDate(
+            c.created_at
+          )}</div>
+      </div>
+      <span class="cs ${statusChipClass(c.status_name)}">${
+            c.status_name || "Pending"
+          }</span>
+    </div>
+
+    <div style="background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:16px;font-size:13px;color:var(--text-2);line-height:1.7">${
+      c.description || "No description."
+    }</div>
+
+    ${
+      c.ban
+        ? `
+    <div style="font-family:var(--font-cond);font-size:11px;color:var(--red);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">⛔ Ban Details</div>
+    <div class="ban-box" style="margin-bottom:16px">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:13px">
+        <div><span style="color:var(--text-3)">Banned: </span><strong>${
+          c.ban.banned_player_names || "—"
+        }</strong></div>
+        <div><span style="color:var(--text-3)">Type: </span><strong>${(
+          c.ban.ban_type || ""
+        ).replace(/_/g, " ")}</strong></div>
+        <div><span style="color:var(--text-3)">Start: </span><strong>${Components.formatDate(
+          c.ban.start_date
+        )}</strong></div>
+        <div><span style="color:var(--text-3)">End: </span><strong>${
+          c.ban.end_date ? Components.formatDate(c.ban.end_date) : "Permanent"
+        }</strong></div>
+      </div>
+      ${
+        c.ban.description
+          ? `<div style="margin-top:8px;font-size:13px;color:var(--text-2)">${c.ban.description}</div>`
+          : ""
+      }
+      ${
+        c.ban.evidence
+          ? `<div style="margin-top:6px;font-size:12px;color:var(--text-3)">Evidence: ${c.ban.evidence}</div>`
+          : ""
+      }
+    </div>`
+        : ""
+    }
+
+    ${
+      c.ban?.team_ban_team_id
+        ? `
+    <div style="font-family:var(--font-cond);font-size:11px;color:var(--yellow);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">🟡 Team Ban Details</div>
+    <div class="team-ban-box" style="margin-bottom:16px;font-size:13px">
+      <div style="display:flex;gap:16px;flex-wrap:wrap">
+        <span>Scope: <strong>${c.ban.ban_scope || "tournament"}</strong></span>
+        <span>Affects Roster: <strong style="color:${
+          c.ban.affects_roster ? "var(--red)" : "var(--green)"
+        }">${c.ban.affects_roster ? "Yes" : "No"}</strong></span>
+      </div>
+    </div>`
+        : ""
+    }
+
+    ${
+      c.history?.length
+        ? `
+    <div style="font-family:var(--font-cond);font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">📋 Status History</div>
+    <div style="background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:16px">
+      ${c.history
+        .map(
+          (h) => `
+      <div class="history-item">
+        <div class="h-dot"></div>
+        <div style="flex:1">
+          <span class="cs ${statusChipClass(h.status_name)}">${
+            h.status_name
+          }</span>
+          <span style="font-size:12px;color:var(--text-3);margin-left:8px">by ${
+            h.admin_username
+          } · ${Components.formatDate(h.changed_at)}</span>
+          ${
+            h.note
+              ? `<div style="font-size:12px;color:var(--text-2);margin-top:3px">${h.note}</div>`
+              : ""
+          }
+        </div>
+      </div>`
+        )
+        .join("")}
+    </div>`
+        : ""
+    }
+
+    ${
+      c.appeals?.length
+        ? `
+    <div style="font-family:var(--font-cond);font-size:11px;color:#60a5fa;text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">⚖️ Appeals (${
+      c.appeals.length
+    })</div>
+    ${c.appeals
+      .map(
+        (a) => `
+    <div style="background:rgba(96,165,250,.06);border:1px solid rgba(96,165,250,.25);border-radius:var(--radius);padding:12px;margin-bottom:8px">
+      <div style="font-family:var(--font-head);font-size:13px;font-weight:700">${
+        a.subject
+      }</div>
+      <div style="font-size:12px;color:var(--text-2);margin-top:4px;line-height:1.6">${
+        a.description
+      }</div>
+      <div style="display:flex;gap:10px;margin-top:6px;font-size:11px;color:var(--text-3)">
+        <span>${Components.formatDate(a.created_at)}</span>
+        <span class="cs ${statusChipClass(a.status_name)}">${
+          a.status_name || "Pending"
+        }</span>
+      </div>
+    </div>`
+      )
+      .join("")}`
+        : ""
+    }
+
+    ${
+      c.ban && user?.role === "Player"
+        ? `
+    <div style="padding-top:12px;border-top:1px solid var(--border)">
+      <button class="btn btn-outline-accent" onclick="document.getElementById('detail-modal').classList.remove('open');openAppeal(${c.contention_id})">
+        ⚖️ File an Appeal
+      </button>
+    </div>`
+        : ""
+    }
+    `;
+        } catch (e) {
+          document.getElementById("detail-body").innerHTML =
+            Components.empty("Failed to load");
+        }
+      }
+
+      // ── Appeal ────────────────────────────────────────
+      function openAppeal(cid) {
+        document.getElementById("ap-cid").value = cid;
+        document.getElementById("ap-error").style.display = "none";
+        document.getElementById("ap-success").style.display = "none";
+        document.getElementById("ap-subject").value = "";
+        document.getElementById("ap-desc").value = "";
+        document.getElementById("appeal-modal").classList.add("open");
+      }
+
+      async function submitAppeal() {
+        const cid = document.getElementById("ap-cid").value;
+        const subject = document.getElementById("ap-subject").value.trim();
+        const desc = document.getElementById("ap-desc").value.trim();
+        const errEl = document.getElementById("ap-error");
+        const sucEl = document.getElementById("ap-success");
+        errEl.style.display = "none";
+        sucEl.style.display = "none";
+        if (!subject) {
+          errEl.textContent = "Subject required";
+          errEl.style.display = "block";
+          return;
+        }
+        if (!desc || desc.length < 30) {
+          errEl.textContent =
+            "Please provide a detailed explanation (min 30 chars)";
+          errEl.style.display = "block";
+          return;
+        }
+        try {
+          const r = await API.post(`/contentions/${cid}/appeal`, {
+            subject,
+            description: desc,
+          });
+          sucEl.textContent = `✅ Appeal #${r.support_id} filed. Admin will review it shortly.`;
+          sucEl.style.display = "block";
+          await loadMyContentions();
+          setTimeout(
+            () =>
+              document.getElementById("appeal-modal").classList.remove("open"),
+            2500
+          );
+        } catch (e) {
+          errEl.textContent = e.error || "Failed";
+          errEl.style.display = "block";
+        }
+      }
+
+      // Close modals on overlay click
+      document.querySelectorAll(".modal-ov").forEach((m) =>
+        m.addEventListener("click", (e) => {
+          if (e.target === m) m.classList.remove("open");
+        })
+      );
+    </script>
+  </body>
+</html>

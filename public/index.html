@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Esports Hub — Valorant Esports</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body data-page="Home">
+    <div id="navbar-mount"></div>
+
+    <main>
+      <!-- Hero Banner -->
+      <div
+        style="
+          background: linear-gradient(180deg, #1a0509 0%, var(--bg-1) 100%);
+          border-bottom: 1px solid var(--border);
+          padding: 32px 0;
+        "
+      >
+        <div
+          class="container"
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+          "
+        >
+          <div>
+            <div
+              style="
+                font-family: var(--font-head);
+                font-size: 36px;
+                font-weight: 700;
+                letter-spacing: 2px;
+                text-transform: uppercase;
+              "
+            >
+              Valorant <span style="color: var(--accent)">Esports</span>
+            </div>
+            <div style="font-size: 14px; color: var(--text-2); margin-top: 6px">
+              Scores · Matches · Teams · Players · Tournaments
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 16px">
+              <a href="/matches.html" class="btn btn-primary">View Matches</a>
+              <a href="/tournaments.html" class="btn btn-ghost">Tournaments</a>
+            </div>
+          </div>
+          <div style="display: flex; gap: 20px" id="hero-stats"></div>
+        </div>
+      </div>
+
+      <div class="container">
+        <div class="layout">
+          <!-- Main Content -->
+          <div>
+            <div style="margin-top: 0">
+              <div class="filter-tabs" style="margin-top: 24px">
+                <button
+                  class="filter-tab active"
+                  onclick="switchTab(this,'live')"
+                >
+                  Live
+                </button>
+                <button class="filter-tab" onclick="switchTab(this,'upcoming')">
+                  Upcoming
+                </button>
+                <button
+                  class="filter-tab"
+                  onclick="switchTab(this,'completed')"
+                >
+                  Results
+                </button>
+              </div>
+
+              <div id="matches-container">
+                <div class="loading">
+                  <div class="spinner"></div>
+                  <span>Loading...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar -->
+          <aside class="sidebar">
+            <!-- Rankings widget -->
+            <div class="sidebar-card">
+              <div class="sidebar-card-header">🏆 Team Rankings</div>
+              <div id="rankings-widget">
+                <div class="loading" style="padding: 24px">
+                  <div class="spinner"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Tournaments widget -->
+            <div class="sidebar-card">
+              <div class="sidebar-card-header">🎮 Active Tournaments</div>
+              <div id="events-widget">
+                <div class="loading" style="padding: 24px">
+                  <div class="spinner"></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Players -->
+            <div class="sidebar-card">
+              <div class="sidebar-card-header">⭐ Top Players</div>
+              <div id="players-widget">
+                <div class="loading" style="padding: 24px">
+                  <div class="spinner"></div>
+                </div>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </main>
+
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      let currentTab = "live";
+
+      async function switchTab(btn, status) {
+        document
+          .querySelectorAll(".filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentTab = status;
+        await loadMatches(status);
+      }
+
+      async function loadMatches(status) {
+        const container = document.getElementById("matches-container");
+        container.innerHTML = Components.loading();
+        try {
+          const matches = await API.get(`/matches?status=${status}&limit=12`);
+          if (!matches.length) {
+            container.innerHTML = Components.empty(
+              "No " + status + " matches right now"
+            );
+            return;
+          }
+          container.innerHTML = `<div style="display:flex;flex-direction:column;gap:10px;">
+  ${matches.map((m) => Components.matchCard(m)).join("")}
+</div>`;
+        } catch (e) {
+          container.innerHTML = Components.empty("Failed to load matches");
+        }
+      }
+
+      async function loadRankings() {
+        try {
+          const teams = await API.get("/rankings/teams");
+          const widget = document.getElementById("rankings-widget");
+          widget.innerHTML = teams
+            .slice(0, 8)
+            .map(
+              (t) => `
+  <div class="sidebar-item" onclick="location.href='/team-detail.html?id=${
+    t.team_id
+  }'">
+    <span class="sidebar-rank ${t.rank <= 3 ? "rank-num top" + t.rank : ""}">${
+                t.rank
+              }</span>
+    ${
+      t.logo
+        ? `<img class="sidebar-team-logo" src="${t.logo}" onerror="this.style.display='none'" alt="">`
+        : `<div style="width:24px;height:24px;background:var(--bg-4);border-radius:2px;flex-shrink:0"></div>`
+    }
+    <span class="sidebar-team-name">${t.name}</span>
+    <span class="sidebar-team-rec"><span style="color:var(--green)">${
+      t.wins || 0
+    }</span>-<span style="color:var(--red)">${t.losses || 0}</span></span>
+  </div>
+`
+            )
+            .join("");
+          const footer = `<div style="padding:10px 14px;text-align:center;"><a href="/rankings.html" class="text-accent" style="font-size:12px;font-family:var(--font-cond);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">View All Rankings →</a></div>`;
+          widget.innerHTML += footer;
+        } catch (e) {}
+      }
+
+      async function loadTournaments() {
+        try {
+          const tournaments = await API.get("/tournaments?limit=5");
+          const widget = document.getElementById("events-widget");
+          widget.innerHTML =
+            tournaments
+              .slice(0, 5)
+              .map((ev) => {
+                const statusColor =
+                  ev.status === "Completed"
+                    ? "var(--text-3)"
+                    : ev.status === "Live"
+                    ? "var(--live)"
+                    : "var(--upcoming)";
+                return `<div class="sidebar-item" onclick="location.href='/event-detail.html?id=${
+                  ev.tournament_id
+                }'">
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--font-head);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${
+        ev.name
+      }</div>
+      <div style="font-size:11px;color:${statusColor};margin-top:2px">${
+                  ev.status
+                } · ${Components.formatPrize(ev.prize_pool)}</div>
+    </div>
+  </div>`;
+              })
+              .join("") +
+            `<div style="padding:10px 14px;text-align:center"><a href="/tournaments.html" class="text-accent" style="font-size:12px;font-family:var(--font-cond);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">All Tournaments →</a></div>`;
+        } catch (e) {}
+      }
+
+      async function loadTopPlayers() {
+        try {
+          const players = await API.get("/rankings/players");
+          const widget = document.getElementById("players-widget");
+          widget.innerHTML =
+            players
+              .slice(0, 6)
+              .map(
+                (p, i) => `
+  <div class="sidebar-item" onclick="location.href='/player-detail.html?id=${
+    p.player_id
+  }'">
+    <span class="sidebar-rank">${i + 1}</span>
+    <div class="nav-avatar" style="width:28px;height:28px;font-size:11px">${
+      p.username ? p.username[0].toUpperCase() : "?"
+    }</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--font-head);font-size:13px;font-weight:700">${
+        p.username
+      }</div>
+      <div style="font-size:11px;color:var(--text-3)">${
+        p.team_name || "Free Agent"
+      }</div>
+    </div>
+    <span style="font-family:var(--font-cond);font-size:13px;font-weight:700;color:var(--accent)">${
+      p.avg_rating ? p.avg_rating.toFixed(2) : "—"
+    }</span>
+  </div>
+`
+              )
+              .join("") +
+            `<div style="padding:10px 14px;text-align:center"><a href="/rankings.html" class="text-accent" style="font-size:12px;font-family:var(--font-cond);font-weight:700;text-transform:uppercase;letter-spacing:0.5px">Player Rankings →</a></div>`;
+        } catch (e) {}
+      }
+
+      async function loadHeroStats() {
+        try {
+          const [teams, players, tournaments] = await Promise.all([
+            API.get("/teams"),
+            API.get("/players?limit=1000"),
+            API.get("/tournaments"),
+          ]);
+          document.getElementById("hero-stats").innerHTML = [
+            { val: teams.length, lbl: "Teams" },
+            { val: players.length, lbl: "Players" },
+            { val: tournaments.length, lbl: "Tournaments" },
+          ]
+            .map(
+              (s) => `
+  <div style="text-align:center;padding:12px 20px;background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:var(--radius-lg);">
+    <div style="font-family:var(--font-head);font-size:28px;font-weight:700;color:var(--accent)">${s.val}</div>
+    <div style="font-size:11px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.8px;margin-top:2px">${s.lbl}</div>
+  </div>
+`
+            )
+            .join("");
+        } catch (e) {}
+      }
+
+      async function init() {
+        await loadMatches("Live");
+        const container = document.getElementById("matches-container");
+        if (container.querySelector(".empty")) {
+          document.querySelectorAll(".filter-tab").forEach((b, i) => {
+            if (i === 1) b.classList.add("active");
+            else b.classList.remove("active");
+          });
+          await loadMatches("Upcoming");
+          if (container.querySelector(".empty")) {
+            document.querySelectorAll(".filter-tab").forEach((b, i) => {
+              if (i === 2) b.classList.add("active");
+              else b.classList.remove("active");
+            });
+            await loadMatches("Completed");
+          }
+        }
+        loadRankings();
+        loadTournaments();
+        loadTopPlayers();
+        loadHeroStats();
+      }
+      init();
+    </script>
+  </body>
+</html>

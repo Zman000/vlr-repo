@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Rankings — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body data-page="Rankings">
+    <div id="navbar-mount"></div>
+
+    <div class="page-banner">
+      <div class="container">
+        <div class="page-banner-inner">
+          <div>
+            <div class="page-title">Rankings</div>
+            <div class="page-subtitle">
+              Team and player standings by game
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container layout-full">
+      <div
+        style="
+          display: flex;
+          gap: 16px;
+          align-items: center;
+          flex-wrap: wrap;
+          margin-bottom: 16px;
+        "
+      >
+        <div class="filter-tabs" id="mode-tabs" style="margin: 0">
+          <button class="filter-tab active" onclick="switchMode(this,'teams')">
+            Teams
+          </button>
+          <button class="filter-tab" onclick="switchMode(this,'players')">
+            Players
+          </button>
+        </div>
+        
+        <div class="filter-tabs" id="game-tabs" style="margin: 0">
+          <button class="filter-tab active" onclick="switchGame(this,'Valorant')">
+            Valorant
+          </button>
+          <button class="filter-tab" onclick="switchGame(this,'BGMI')">
+            BGMI
+          </button>
+          <button class="filter-tab" onclick="switchGame(this,'CS2')">
+            CS2
+          </button>
+        </div>
+
+        <div class="filter-tabs" id="region-tabs" style="margin: 0">
+          <button class="filter-tab active" onclick="filterRegion(this,'')">
+            All Regions
+          </button>
+          <button class="filter-tab" onclick="filterRegion(this,'Americas')">
+            Americas
+          </button>
+          <button class="filter-tab" onclick="filterRegion(this,'Pacific')">
+            Pacific
+          </button>
+          <button class="filter-tab" onclick="filterRegion(this,'China')">
+            China
+          </button>
+          <button class="filter-tab" onclick="filterRegion(this,'APAC')">
+            APAC
+          </button>
+          <button class="filter-tab" onclick="filterRegion(this,'EMEA')">
+            EMEA
+          </button>
+          <button class="filter-tab" onclick="filterRegion(this,'South Asia')">
+            South Asia
+          </button>
+          <button class="filter-tab" onclick="filterRegion(this,'Asia')">
+            Asia
+          </button>
+        </div>
+      </div>
+
+      <div id="rankings-teams">
+        <div class="card">
+          <div
+            style="
+              display: grid;
+              grid-template-columns: 110px 3fr 1.5fr 100px 100px 100px;
+              align-items: center;
+              gap: 8px;
+              padding: 10px 16px;
+              background: var(--bg-3);
+              font-family: var(--font-cond);
+              font-size: 11px;
+              text-transform: uppercase;
+              letter-spacing: 0.8px;
+              color: var(--text-3);
+            "
+          >
+            <span style="text-align: center">Rank</span>
+            <span>Team</span>
+            <span>Region</span>
+            <span style="text-align: center">Win Rate</span>
+            <span style="text-align: center">Maps Won</span>
+            <span style="text-align: center">Maps Lost</span>
+          </div>
+          <div id="teams-rank-list">
+            <div class="loading">
+              <div class="spinner"></div>
+              <span>Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="rankings-players" style="display: none">
+        <div class="card">
+          <div id="player-rank-header"
+            style="
+              display: grid;
+              grid-template-columns: 110px 2.5fr 1fr 100px 100px 100px 80px;
+              align-items: center;
+              gap: 8px;
+              padding: 10px 16px;
+              background: var(--bg-3);
+              font-family: var(--font-cond);
+              font-size: 11px;
+              text-transform: uppercase;
+              letter-spacing: 0.8px;
+              color: var(--text-3);
+            "
+          >
+            </div>
+          <div id="players-rank-list">
+            <div class="loading">
+              <div class="spinner"></div>
+              <span>Loading...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      let mode = "teams";
+      let region = "";
+      let game = "Valorant"; // Default game
+
+      async function loadTeamRankings(r = "") {
+        const list = document.getElementById("teams-rank-list");
+        list.innerHTML = Components.loading();
+        try {
+          const url = `/rankings/teams?game=${encodeURIComponent(game)}` + (r ? `&region=${r}` : "");
+          const teams = await API.get(url);
+          
+          if (!teams.length) {
+            list.innerHTML = Components.empty(`No teams found for ${game}`);
+            return;
+          }
+
+          list.innerHTML = teams
+            .map((t) => {
+              const rankClass = t.rank === 1 ? "top1" : t.rank === 2 ? "top2" : t.rank === 3 ? "top3" : "";
+              return `
+      <div style="display:grid;grid-template-columns:110px 3fr 1.5fr 100px 100px 100px;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);transition:background var(--trans);cursor:pointer"
+           onmouseover="this.style.background='var(--bg-3)'" onmouseout="this.style.background=''"
+           onclick="location.href='/team-detail.html?id=${t.team_id}'">
+        <div class="rank-num ${rankClass}" style="text-align:center">${t.rank}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          ${
+            t.logo
+              ? `<img style="width:28px;height:28px;object-fit:contain" src="${t.logo}" alt="${t.name}" onerror="this.style.display='none'">`
+              : `<div style="width:28px;height:28px;background:var(--bg-4);border-radius:3px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:12px;font-weight:700;color:var(--text-3)">${t.name[0]}</div>`
+          }
+          <span style="font-family:var(--font-head);font-size:15px;font-weight:700">${t.name}</span>
+        </div>
+        <div>${Components.regionBadge(t.region)}</div>
+        <div style="text-align:center;font-family:var(--font-cond);font-size:16px;font-weight:700;color:var(--accent)">${t.win_rate || 0}%</div>
+        <div style="text-align:center;font-family:var(--font-cond);font-size:15px;font-weight:700;color:var(--green)">${t.wins || 0}</div>
+        <div style="text-align:center;font-family:var(--font-cond);font-size:15px;font-weight:700;color:var(--red)">${t.losses || 0}</div>
+      </div>`;
+            })
+            .join("");
+        } catch (e) {
+          list.innerHTML = Components.empty("Failed to load rankings");
+        }
+      }
+
+      async function loadPlayerRankings(r = "") {
+        const list = document.getElementById("players-rank-list");
+        const header = document.getElementById("player-rank-header");
+        list.innerHTML = Components.loading();
+
+        // 1. Setup dynamic headers based on the selected game
+        let stat1 = "ACS", stat2 = "K/D", stat3 = "KAST";
+        if (game === "BGMI") {
+            stat1 = "CDs"; 
+            stat2 = "Total Pts";
+            stat3 = "Kill Pts";
+        } else if (game === "CS2") {
+            stat1 = "Rating";
+            stat2 = "KAST";
+            stat3 = "ADR";
+        }
+
+        header.innerHTML = `
+            <span style="text-align: center">Rank</span>
+            <span>Player</span>
+            <span>Team</span>
+            <span style="text-align: center">${stat1}</span>
+            <span style="text-align: center">${stat2}</span>
+            <span style="text-align: center">${stat3}</span>
+            <span style="text-align: center">Region</span>
+        `;
+
+        try {
+          const url = `/rankings/players?game=${encodeURIComponent(game)}` + (r ? `&region=${r}` : "");
+          const players = await API.get(url);
+          
+          if (!players.length) {
+            list.innerHTML = Components.empty(`No players found for ${game}`);
+            return;
+          }
+
+          // 2. Map the appropriate stats dynamically
+          list.innerHTML = players
+            .map((p) => {
+              const rankClass = p.rank === 1 ? "top1" : p.rank === 2 ? "top2" : p.rank === 3 ? "top3" : "";
+              
+              let v1 = "—", v2 = "—", v3 = "—";
+              if (game === "Valorant") {
+                  v1 = p.avg_acs ? Math.round(p.avg_acs) : "—";
+                  v2 = p.avg_kd ? p.avg_kd.toFixed(2) : "—";
+                  v3 = p.avg_kast ? p.avg_kast.toFixed(2) + "%" : "—";
+              } else if (game === "BGMI") {
+                  v1 = p.chicken_dinners ?? "—";
+                  v2 = p.total_points ?? "—";
+                  v3 = p.kill_points ?? "—";
+              } else if (game === "CS2") {
+                  v1 = p.avg_rating ? p.avg_rating.toFixed(2) : "—";
+                  v2 = p.avg_kast ? p.avg_kast.toFixed(2) + "%" : "—";
+                  v3 = p.avg_adr ? Math.round(p.avg_adr) : "—";
+              }
+
+              return `
+      <div style="display:grid;grid-template-columns:110px 2.5fr 1fr 100px 100px 100px 80px;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--border);transition:background var(--trans);cursor:pointer"
+           onmouseover="this.style.background='var(--bg-3)'" onmouseout="this.style.background=''"
+           onclick="location.href='/player-detail.html?id=${p.player_id}'">
+        <div class="rank-num ${rankClass}" style="text-align:center">${p.rank}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="nav-avatar" style="width:32px;height:32px;font-size:12px;flex-shrink:0">${
+            p.username ? p.username[0].toUpperCase() : "?"
+          }</div>
+          <div>
+            <div style="font-family:var(--font-head);font-size:14px;font-weight:700">${p.username}</div>
+            <div style="font-size:11px;color:var(--text-3)">${p.name}</div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:5px">
+          ${p.team_logo ? `<img style="width:18px;height:18px;object-fit:contain" src="${p.team_logo}" onerror="this.style.display='none'" alt="">` : ""}
+          <span style="font-size:12px;color:var(--text-2)">${p.team_name || "—"}</span>
+        </div>
+        <div style="text-align:center;font-family:var(--font-cond);font-size:16px;font-weight:700;color:var(--accent)">${v1}</div>
+        <div style="text-align:center;font-family:var(--font-cond);font-size:14px;font-weight:700">${v2}</div>
+        <div style="text-align:center;font-family:var(--font-cond);font-size:14px;font-weight:700">${v3}</div>
+        <div style="text-align:center">${Components.regionBadge(p.region)}</div>
+      </div>`;
+            })
+            .join("");
+        } catch (e) {
+          list.innerHTML = Components.empty("Failed to load rankings");
+        }
+      }
+
+      function switchMode(btn, m) {
+        document
+          .querySelectorAll("#mode-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        mode = m;
+        document.getElementById("rankings-teams").style.display =
+          m === "teams" ? "" : "none";
+        document.getElementById("rankings-players").style.display =
+          m === "players" ? "" : "none";
+        
+        if (m === "teams") loadTeamRankings(region);
+        else loadPlayerRankings(region);
+      }
+
+      function switchGame(btn, g) {
+        document
+          .querySelectorAll("#game-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        game = g;
+        
+        if (mode === "teams") loadTeamRankings(region);
+        else loadPlayerRankings(region);
+      }
+
+      function filterRegion(btn, r) {
+        document
+          .querySelectorAll("#region-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        region = r;
+        
+        if (mode === "teams") loadTeamRankings(r);
+        else loadPlayerRankings(r);
+      }
+
+      // Initialize
+      loadTeamRankings();
+    </script>
+  </body>
+</html>

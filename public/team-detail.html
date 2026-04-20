@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Team — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body data-page="Teams">
+    <div id="navbar-mount"></div>
+    <div id="team-content">
+      <div class="loading" style="padding: 80px">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+      </div>
+    </div>
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const teamId = params.get("id");
+      if (!teamId) location.href = "/teams.html";
+
+      async function loadTeam() {
+        try {
+          const t = await API.get(`/teams/${teamId}`);
+          document.title = `${t.name} — Esports Hub`;
+
+          // Compute record from matches
+          const wins = t.matches.filter(
+            (m) => m.winner_name && m.winner_name === t.name
+          ).length;
+          const losses = t.matches.filter(
+            (m) => m.winner_name && m.winner_name !== t.name
+          ).length;
+
+          // Tab content builders
+          const rosterHTML = t.players.length
+            ? `<div class="card">
+          <div class="roster-row header">
+            <span></span><span>Player</span><span>Country</span><span>Rank</span><span>Joined</span>
+          </div>
+          ${t.players
+            .map(
+              (p) => `
+          <div class="roster-row" onclick="location.href='/player-detail.html?id=${
+            p.player_id
+          }'">
+            <div class="nav-avatar" style="width:36px;height:36px;font-size:13px">${
+              p.username ? p.username[0].toUpperCase() : "?"
+            }</div>
+            <div>
+              <div style="font-family:var(--font-head);font-size:14px;font-weight:700">${
+                p.username
+              }</div>
+              <div style="font-size:11px;color:var(--text-3)">${p.name}</div>
+            </div>
+            <span style="font-size:13px;color:var(--text-2)">${
+              p.country || "—"
+            }</span>
+            <span style="font-family:var(--font-cond);font-size:13px;font-weight:700;color:var(--accent)">${
+              p.rank || "—"
+            }</span>
+            <span style="font-size:12px;color:var(--text-3)">${Components.formatDate(
+              p.join_date
+            )}</span>
+          </div>`
+            )
+            .join("")}
+        </div>`
+            : Components.empty("No players on roster");
+
+          const matchesHTML = t.matches.length
+            ? `<div class="card">
+          ${t.matches
+            .map((m) => {
+              const isT1 = m.t1_name === t.name;
+              const won = m.winner_name === t.name;
+              const isCompleted = m.status === "Completed";
+              return `
+            <div class="match-row" onclick="location.href='/match-detail.html?id=${
+              m.match_id
+            }'">
+              <span style="font-size:12px;color:var(--text-3)">${Components.formatDate(
+                m.date
+              )}</span>
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-family:var(--font-head);font-weight:700;font-size:14px">${
+                  m.t1_name
+                }</span>
+                <span style="color:var(--text-3);font-size:12px">vs</span>
+                <span style="font-family:var(--font-head);font-weight:700;font-size:14px">${
+                  m.t2_name
+                }</span>
+              </div>
+              <div style="font-family:var(--font-head);font-size:16px;font-weight:700">
+                ${
+                  isCompleted
+                    ? `<span style="${
+                        (isT1 && won) || (!isT1 && !won)
+                          ? "color:var(--text-1)"
+                          : "color:var(--text-3)"
+                      }">${m.score_team1}</span>
+                     <span style="color:var(--text-3);font-size:12px;margin:0 3px">:</span>
+                     <span style="${
+                       (!isT1 && won) || (isT1 && !won)
+                         ? "color:var(--text-1)"
+                         : "color:var(--text-3)"
+                     }">${m.score_team2}</span>`
+                    : '<span style="color:var(--text-3)">—</span>'
+                }
+              </div>
+              <div style="font-size:12px;color:var(--accent);font-family:var(--font-cond);font-weight:600">${
+                m.tournament_name
+              }</div>
+              ${
+                isCompleted
+                  ? `<span class="badge ${won ? "badge-live" : "badge-done"}">${
+                      won ? "WIN" : "LOSS"
+                    }</span>`
+                  : `<span class="badge badge-upcoming">Upcoming</span>`
+              }
+            </div>`;
+            })
+            .join("")}
+        </div>`
+            : Components.empty("No recent matches");
+
+          const tournamentsHTML = t.tournaments.length
+            ? `<div style="display:flex;flex-direction:column;gap:10px;">
+          ${t.tournaments
+            .map(
+              (ev) => `
+          <div class="event-card" onclick="location.href='/event-detail.html?id=${
+            ev.tournament_id
+          }'">
+            <div class="event-card-body">
+              <div class="event-card-name">${ev.name}</div>
+              <div class="event-card-meta">
+                <span>📅 ${Components.formatDate(ev.start_date)}${
+                ev.end_date ? " – " + Components.formatDate(ev.end_date) : ""
+              }</span>
+                <span>${ev.status}</span>
+              </div>
+              ${
+                ev.prize_pool
+                  ? `<div class="event-card-prize">${Components.formatPrize(
+                      ev.prize_pool
+                    )}</div>`
+                  : ""
+              }
+            </div>
+          </div>`
+            )
+            .join("")}
+        </div>`
+            : Components.empty("No tournaments found");
+
+          document.getElementById("team-content").innerHTML = `
+      <!-- Hero -->
+      <div class="detail-hero">
+        <div class="container">
+          <div class="team-hero-inner">
+            ${
+              t.logo
+                ? `<img class="team-hero-logo" src="${t.logo}" alt="${t.name}" referrerpolicy="no-referrer" onerror="this.outerHTML='<div class=team-logo-placeholder style=width:96px;height:96px;font-size:32px>${t.name[0]}</div>'">`
+                : `<div style="width:96px;height:96px;background:var(--bg-4);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:36px;font-weight:700;color:var(--text-3)">${t.name[0]}</div>`
+            }
+            <div style="flex:1">
+              <div class="team-hero-info">
+                <div class="name">${t.name}</div>
+                <div class="meta">
+                  ${Components.regionBadge(t.region)}
+                  ${t.org_name ? `<span>${t.org_name}</span>` : ""}
+                  ${
+                    t.coach_name
+                      ? `<span>Coach: <strong>${t.coach_name}</strong></span>`
+                      : ""
+                  }
+                  <span>Est. ${new Date(t.founded_date).getFullYear()}</span>
+                  <span class="badge ${
+                    t.status === "Active" ? "badge-live" : "badge-done"
+                  }">${t.status || "Active"}</span>
+                </div>
+              </div>
+              <div class="team-hero-stats">
+                <div class="hero-stat">
+                  <div class="val text-green">${wins}</div>
+                  <div class="lbl">Wins</div>
+                </div>
+                <div class="hero-stat">
+                  <div class="val text-red">${losses}</div>
+                  <div class="lbl">Losses</div>
+                </div>
+                <div class="hero-stat">
+                  <div class="val text-accent">${
+                    wins + losses > 0
+                      ? Math.round((wins / (wins + losses)) * 100)
+                      : 0
+                  }%</div>
+                  <div class="lbl">Win Rate</div>
+                </div>
+                <div class="hero-stat">
+                  <div class="val">${t.players.length}</div>
+                  <div class="lbl">Players</div>
+                </div>
+                <div class="hero-stat">
+                  <div class="val">${t.tournaments.length}</div>
+                  <div class="lbl">Tournaments</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab Content -->
+      <div class="container" style="padding-top:24px">
+        <div class="filter-tabs" id="team-tabs">
+          <button class="filter-tab active" onclick="switchTab(this,'roster')">Roster</button>
+          <button class="filter-tab" onclick="switchTab(this,'matches')">Recent Matches</button>
+          <button class="filter-tab" onclick="switchTab(this,'tournaments')">Tournaments</button>
+        </div>
+
+        <div id="tab-roster">${rosterHTML}</div>
+        <div id="tab-matches" style="display:none">${matchesHTML}</div>
+        <div id="tab-tournaments" style="display:none">${tournamentsHTML}</div>
+      </div>
+    `;
+        } catch (e) {
+          document.getElementById("team-content").innerHTML =
+            Components.empty("Team not found");
+        }
+      }
+
+      function switchTab(btn, tab) {
+        document
+          .querySelectorAll("#team-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        ["roster", "matches", "tournaments"].forEach((t) => {
+          document.getElementById("tab-" + t).style.display =
+            t === tab ? "" : "none";
+        });
+      }
+
+      loadTeam();
+    </script>
+  </body>
+</html>

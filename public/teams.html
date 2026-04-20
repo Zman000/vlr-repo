@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Teams — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body data-page="Teams">
+    <div id="navbar-mount"></div>
+
+    <div class="page-banner">
+      <div class="container">
+        <div class="page-banner-inner">
+          <div>
+            <div class="page-title">Teams</div>
+            <div class="page-subtitle">
+              All registered Valorant esports teams
+            </div>
+          </div>
+          <div class="region-filter" id="region-filter">
+            <button class="filter-tab active" onclick="filterRegion(this,'')">
+              All
+            </button>
+            <button class="filter-tab" onclick="filterRegion(this,'Americas')">
+              Americas
+            </button>
+            <button class="filter-tab" onclick="filterRegion(this,'Pacific')">
+              Pacific
+            </button>
+            <button class="filter-tab" onclick="filterRegion(this,'China')">
+              China
+            </button>
+            <button class="filter-tab" onclick="filterRegion(this,'EMEA')">
+              EMEA
+            </button>
+            <button class="filter-tab" onclick="filterRegion(this,'South Asia')">
+              South Asia
+            </button>
+            <button class="filter-tab" onclick="filterRegion(this,'Asia')">
+              Asia
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container layout-full">
+      <div
+        style="
+          margin-bottom: 16px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        "
+      >
+        <div class="nav-search" style="flex: 1; max-width: 320px">
+          <svg
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="11" cy="11" r="8" />
+            <path d="m21 21-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Search teams..."
+            oninput="filterTeams()"
+          />
+        </div>
+        <span
+          id="team-count"
+          style="font-size: 13px; color: var(--text-3)"
+        ></span>
+      </div>
+
+      <div id="teams-grid" class="grid-4">
+        <div class="loading" style="grid-column: 1/-1">
+          <div class="spinner"></div>
+          <span>Loading...</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      let allTeams = [];
+      let currentRegion = "";
+
+      async function loadTeams(region = "") {
+        const grid = document.getElementById("teams-grid");
+        grid.innerHTML = Components.loading();
+        try {
+          const url = region ? `/teams?region=${region}` : "/teams";
+          allTeams = await API.get(url);
+          renderTeams(allTeams);
+        } catch (e) {
+          grid.innerHTML = Components.empty("Failed to load teams");
+        }
+      }
+
+      function renderTeams(teams) {
+        const grid = document.getElementById("teams-grid");
+        document.getElementById(
+          "team-count"
+        ).textContent = `${teams.length} teams`;
+        if (!teams.length) {
+          grid.innerHTML = Components.empty("No teams found");
+          return;
+        }
+
+        grid.innerHTML = teams
+          .map(
+            (t) => `
+    <div class="team-card" onclick="location.href='/team-detail.html?id=${
+      t.team_id
+    }'">
+      ${
+        t.logo
+          ? `<img class="team-card-logo" src="${t.logo}" alt="${t.name}" referrerpolicy="no-referrer" onerror="this.outerHTML='<div style=width:80px;height:80px;background:var(--bg-4);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:28px;font-weight:700;color:var(--text-3)>${t.name[0]}</div>'">`
+          : `<div style="width:80px;height:80px;background:var(--bg-4);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:28px;font-weight:700;color:var(--text-3)">${t.name[0]}</div>`
+      }
+      <div class="team-card-name">${t.name}</div>
+      <div class="team-card-meta">
+        ${Components.regionBadge(t.region)}
+        <span>${t.player_count || 0} players</span>
+      </div>
+      ${
+        t.org_name
+          ? `<div style="font-size:12px;color:var(--text-3)">${t.org_name}</div>`
+          : ""
+      }
+      ${
+        t.coach_name
+          ? `<div style="font-size:12px;color:var(--text-2)">Coach: <strong>${t.coach_name}</strong></div>`
+          : ""
+      }
+      <div style="font-size:11px;color:var(--text-3)">Est. ${new Date(
+        t.founded_date
+      ).getFullYear()}</div>
+    </div>
+  `
+          )
+          .join("");
+      }
+
+      function filterRegion(btn, region) {
+        document
+          .querySelectorAll("#region-filter .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentRegion = region;
+        loadTeams(region);
+      }
+
+      function filterTeams() {
+        const q = document.getElementById("searchInput").value.toLowerCase();
+        const filtered = allTeams.filter(
+          (t) =>
+            t.name.toLowerCase().includes(q) ||
+            (t.org_name || "").toLowerCase().includes(q)
+        );
+        renderTeams(filtered);
+      }
+
+      loadTeams();
+    </script>
+  </body>
+</html>

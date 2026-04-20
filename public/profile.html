@@ -1,0 +1,1985 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Profile — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      /* ── Hero ────────────────────────────────── */
+      .ph-hero {
+        background: linear-gradient(160deg, #0a0510 0%, #0f1117 70%);
+        border-bottom: 1px solid var(--border);
+        padding: 36px 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .ph-hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 25% 50%,
+          rgba(167, 139, 250, 0.07) 0%,
+          transparent 60%
+        );
+      }
+      .ph-inner {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .ph-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--bg-4), var(--bg-3));
+        border: 3px solid var(--border-2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-head);
+        font-size: 36px;
+        font-weight: 700;
+        color: #a78bfa;
+        flex-shrink: 0;
+        overflow: hidden;
+        cursor: pointer;
+        position: relative;
+      }
+      .ph-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .ph-avatar:hover::after {
+        content: "📷";
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+      }
+      .ph-ign {
+        font-family: var(--font-head);
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        line-height: 1;
+      }
+      .ph-name {
+        font-size: 15px;
+        color: var(--text-2);
+        margin-top: 3px;
+      }
+      .ph-pills {
+        display: flex;
+        gap: 8px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+      }
+      .ph-pill {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        background: var(--bg-4);
+        border: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--text-2);
+      }
+      .ph-pill.team {
+        background: var(--accent-dim);
+        border-color: rgba(255, 70, 85, 0.3);
+        color: var(--text-1);
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .ph-pill img {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+      }
+
+      /* Approval banner */
+      .approval-banner {
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .ab-pending {
+        background: rgba(251, 191, 36, 0.1);
+        border-bottom: 1px solid rgba(251, 191, 36, 0.3);
+        color: var(--yellow);
+      }
+      .ab-rejected {
+        background: rgba(248, 113, 113, 0.1);
+        border-bottom: 1px solid rgba(248, 113, 113, 0.3);
+        color: var(--red);
+      }
+      .ab-approved {
+        background: rgba(74, 222, 128, 0.08);
+        border-bottom: 1px solid rgba(74, 222, 128, 0.3);
+        color: var(--green);
+      }
+
+      /* Stat row */
+      .stat-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        margin-top: 18px;
+      }
+      .stat-cell {
+        background: var(--bg-3);
+        padding: 14px 10px;
+        text-align: center;
+      }
+      .stat-cell .sv {
+        font-family: var(--font-head);
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-1);
+        line-height: 1;
+      }
+      .stat-cell .sl {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+        margin-top: 3px;
+      }
+
+      /* ── Layout ──────────────────────────────── */
+      .profile-layout {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        gap: 24px;
+        padding-top: 24px;
+      }
+      @media (max-width: 800px) {
+        .profile-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Sidebar nav */
+      .pnav {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        position: sticky;
+        top: calc(var(--nav-h) + 16px);
+        align-self: start;
+      }
+      .pnav-section {
+        font-family: var(--font-cond);
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--text-3);
+        padding: 12px 12px 4px;
+      }
+      .pnav-item {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 9px 12px;
+        border-radius: var(--radius-lg);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-2);
+        cursor: pointer;
+        transition: all var(--trans);
+      }
+      .pnav-item:hover {
+        background: var(--bg-3);
+        color: var(--text-1);
+      }
+      .pnav-item.active {
+        background: rgba(167, 139, 250, 0.1);
+        color: #a78bfa;
+      }
+      .pnav-item svg {
+        flex-shrink: 0;
+      }
+
+      /* Panels */
+      .ppanel {
+        display: none;
+      }
+      .ppanel.active {
+        display: block;
+      }
+      .ptitle {
+        font-family: var(--font-head);
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 4px;
+      }
+      .psub {
+        font-size: 13px;
+        color: var(--text-2);
+        margin-bottom: 20px;
+      }
+      .psection {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 22px;
+        margin-bottom: 14px;
+      }
+      .psection-title {
+        font-family: var(--font-cond);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+        margin-bottom: 14px;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border);
+      }
+
+      /* Info sidebar table */
+      .info-r {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      .info-r:last-child {
+        border-bottom: none;
+      }
+      .info-r .l {
+        color: var(--text-3);
+      }
+      .info-r .v {
+        font-weight: 600;
+        font-family: var(--font-cond);
+        font-size: 14px;
+      }
+
+      /* Match row */
+      .m-row {
+        display: grid;
+        grid-template-columns: 90px 1fr 100px 120px 56px;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background var(--trans);
+      }
+      .m-row:hover {
+        background: var(--bg-3);
+      }
+      .m-row:last-child {
+        border-bottom: none;
+      }
+      .wlbadge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 18px;
+        border-radius: 3px;
+        font-family: var(--font-cond);
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .wl-w {
+        background: rgba(74, 222, 128, 0.12);
+        color: var(--green);
+        border: 1px solid rgba(74, 222, 128, 0.3);
+      }
+      .wl-l {
+        background: rgba(248, 113, 113, 0.1);
+        color: var(--red);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+      }
+      .wl-u {
+        background: var(--bg-4);
+        color: var(--text-3);
+        border: 1px solid var(--border);
+      }
+
+      /* Game status badges */
+      .gstatus {
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-family: var(--font-cond);
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+      .gs-approved {
+        background: rgba(74, 222, 128, 0.1);
+        color: var(--green);
+        border: 1px solid rgba(74, 222, 128, 0.3);
+      }
+      .gs-pending {
+        background: rgba(251, 191, 36, 0.1);
+        color: var(--yellow);
+        border: 1px solid rgba(251, 191, 36, 0.3);
+      }
+      .gs-rejected {
+        background: rgba(248, 113, 113, 0.1);
+        color: var(--red);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+      }
+
+      /* Danger zone */
+      .danger-box {
+        background: rgba(248, 113, 113, 0.05);
+        border: 1px solid rgba(248, 113, 113, 0.2);
+        border-radius: var(--radius-lg);
+        padding: 22px;
+      }
+
+      /* pw strength */
+      .pw-bar {
+        height: 3px;
+        background: var(--border);
+        border-radius: 2px;
+        margin-top: 4px;
+        overflow: hidden;
+      }
+      .pw-fill2 {
+        height: 100%;
+        border-radius: 2px;
+        transition: all 0.3s;
+        width: 0;
+      }
+
+      /* Avatar overlay */
+      .av-overlay {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.55);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        cursor: pointer;
+      }
+      .ph-avatar:hover .av-overlay {
+        display: flex;
+      }
+
+      /* Notification item */
+      .notif-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .notif-item:last-child {
+        border-bottom: none;
+      }
+      .ndot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent);
+        flex-shrink: 0;
+        margin-top: 5px;
+      }
+      .ndot.read {
+        background: var(--border);
+      }
+
+      /* Social links */
+      .social-link {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 12px;
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        text-decoration: none;
+        color: var(--text-1);
+        font-size: 13px;
+        transition: border-color var(--trans);
+      }
+      .social-link:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      .social-icon {
+        font-size: 16px;
+        flex-shrink: 0;
+      }
+
+      @media (max-width: 600px) {
+        .stat-row {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .m-row {
+          grid-template-columns: 1fr 80px 56px;
+        }
+      }
+    </style>
+  </head>
+  <body data-page="">
+    <div id="navbar-mount"></div>
+
+    <!-- Approval banner (shown if pending/rejected) -->
+    <div id="approval-banner" style="display: none"></div>
+
+    <!-- Error message container -->
+    <div
+      id="profile-error"
+      style="
+        display: none;
+        background: rgba(248, 113, 113, 0.1);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+        color: var(--red);
+        padding: 16px;
+        margin: 16px;
+        border-radius: var(--radius-lg);
+        text-align: center;
+      "
+    ></div>
+
+    <!-- Loading indicator -->
+    <div
+      id="profile-loading"
+      style="
+        display: none;
+        background: rgba(167, 139, 250, 0.1);
+        border: 1px solid rgba(167, 139, 250, 0.3);
+        color: #a78bfa;
+        padding: 16px;
+        margin: 16px;
+        border-radius: var(--radius-lg);
+        text-align: center;
+      "
+    >
+      Loading your profile...
+    </div>
+
+    <!-- Hero -->
+    <div class="ph-hero">
+      <div class="container">
+        <div class="ph-inner">
+          <div class="ph-avatar" id="ph-avatar" onclick="showPanel('avatar')">
+            <span id="ph-av-letter">?</span>
+            <div class="av-overlay">📷</div>
+          </div>
+          <div style="flex: 1; min-width: 0">
+            <div class="ph-ign" id="ph-ign">Loading…</div>
+            <div class="ph-name" id="ph-name"></div>
+            <div class="ph-pills" id="ph-pills"></div>
+            <div class="stat-row" id="ph-stats">
+              <div class="stat-cell">
+                <div class="sv" id="st-rating">—</div>
+                <div class="sl">Rating</div>
+              </div>
+              <div class="stat-cell">
+                <div class="sv" id="st-acs">—</div>
+                <div class="sl">ACS</div>
+              </div>
+              <div class="stat-cell">
+                <div class="sv" id="st-kd">—</div>
+                <div class="sl">K/D</div>
+              </div>
+              <div class="stat-cell">
+                <div class="sv" id="st-kast">—</div>
+                <div class="sl">KAST</div>
+              </div>
+              <div class="stat-cell">
+                <div class="sv" id="st-adr">—</div>
+                <div class="sl">ADR</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="profile-layout">
+        <!-- ── Sidebar nav ─────────────────────── -->
+        <aside>
+          <div class="pnav" id="pnav">
+            <div class="pnav-section">Profile</div>
+            <div
+              class="pnav-item active"
+              onclick="showPanel('overview')"
+              id="nav-overview"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="3" width="7" height="7" />
+                <rect x="14" y="3" width="7" height="7" />
+                <rect x="3" y="14" width="7" height="7" />
+                <rect x="14" y="14" width="7" height="7" />
+              </svg>
+              Overview
+            </div>
+            <div
+              class="pnav-item"
+              onclick="showPanel('matches')"
+              id="nav-matches"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v4l3 3" />
+              </svg>
+              Match History
+            </div>
+            <div class="pnav-item" onclick="showPanel('games')" id="nav-games">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M6 12h4m-2-2v4M19 12h.01M15 12h.01M12 3a9 9 0 1 0 0 18A9 9 0 0 0 12 3z"
+                />
+              </svg>
+              My Games
+              <span
+                id="pending-games-dot"
+                style="
+                  display: none;
+                  width: 8px;
+                  height: 8px;
+                  border-radius: 50%;
+                  background: var(--yellow);
+                  margin-left: auto;
+                "
+              ></span>
+            </div>
+            <div class="pnav-section">Settings</div>
+            <div
+              class="pnav-item"
+              onclick="showPanel('edit-profile')"
+              id="nav-edit-profile"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                />
+                <path
+                  d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                />
+              </svg>
+              Edit Profile
+            </div>
+            <div
+              class="pnav-item"
+              onclick="showPanel('avatar')"
+              id="nav-avatar"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="3" width="18" height="18" rx="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <path d="m21 15-5-5L5 21" />
+              </svg>
+              Profile Picture
+            </div>
+            <div
+              class="pnav-item"
+              onclick="showPanel('username')"
+              id="nav-username"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M12 20h9" />
+                <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+              </svg>
+              Change Username
+            </div>
+            <div
+              class="pnav-item"
+              onclick="showPanel('password')"
+              id="nav-password"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <rect x="3" y="11" width="18" height="11" rx="2" />
+                <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+              </svg>
+              Change Password
+            </div>
+            <div class="pnav-section">Activity</div>
+            <div
+              class="pnav-item"
+              onclick="showPanel('notifications')"
+              id="nav-notifications"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+              Notifications
+              <span
+                id="notif-count-badge"
+                style="
+                  display: none;
+                  background: var(--accent);
+                  color: #fff;
+                  padding: 1px 6px;
+                  border-radius: 10px;
+                  font-size: 10px;
+                  font-weight: 700;
+                  margin-left: auto;
+                  font-family: var(--font-cond);
+                "
+              ></span>
+            </div>
+            <div class="pnav-section">Danger</div>
+            <div
+              class="pnav-item"
+              onclick="showPanel('danger')"
+              id="nav-danger"
+              style="color: var(--red)"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path d="M19 6l-1 14H6L5 6M10 11v6M14 11v6" />
+                <path d="M9 6V4h6v2" />
+              </svg>
+              Delete Account
+            </div>
+          </div>
+        </aside>
+
+        <!-- ── Main panels ────────────────────── -->
+        <div>
+          <!-- ── Overview ──────────────────────── -->
+          <div class="ppanel active" id="panel-overview">
+            <div style="display: flex; gap: 16px">
+              <div style="flex: 1; min-width: 0">
+                <!-- Recent matches -->
+                <div class="section-header">
+                  <span class="section-title">Recent Matches</span>
+                </div>
+                <div class="card" id="ov-matches">
+                  <div class="loading" style="padding: 24px">
+                    <div class="spinner"></div>
+                  </div>
+                </div>
+                <!-- Social links -->
+                <div class="section-header" style="margin-top: 20px">
+                  <span class="section-title">Social Links</span>
+                </div>
+                <div
+                  id="ov-social"
+                  style="display: flex; gap: 8px; flex-wrap: wrap"
+                >
+                  <div
+                    style="
+                      font-size: 13px;
+                      color: var(--text-3);
+                      padding: 8px 0;
+                    "
+                  >
+                    No social links added yet.
+                  </div>
+                </div>
+              </div>
+              <!-- Info sidebar -->
+              <aside style="width: 220px; flex-shrink: 0">
+                <div class="psection" id="ov-info-card">
+                  <div class="psection-title">Player Info</div>
+                  <div id="ov-info"></div>
+                </div>
+                <div class="psection" style="margin-top: 0" id="ov-record-card">
+                  <div class="psection-title">Record</div>
+                  <div id="ov-record"></div>
+                </div>
+              </aside>
+            </div>
+          </div>
+
+          <!-- ── Match History ─────────────────── -->
+          <div class="ppanel" id="panel-matches">
+            <div class="ptitle">Match History</div>
+            <div class="psub">
+              Your recent competitive matches across all games.
+            </div>
+            <div id="mh-content">
+              <div class="loading"><div class="spinner"></div></div>
+            </div>
+          </div>
+
+          <!-- ── My Games ───────────────────────── -->
+          <div class="ppanel" id="panel-games">
+            <div class="ptitle">My Games</div>
+            <div class="psub">
+              Games you have registered for and their approval status.
+            </div>
+            <div id="games-list">
+              <div class="loading"><div class="spinner"></div></div>
+            </div>
+          </div>
+
+          <!-- ── Edit Profile ───────────────────── -->
+          <div class="ppanel" id="panel-edit-profile">
+            <div class="ptitle">Edit Profile</div>
+            <div class="psub">Update your public profile information.</div>
+            <div class="form-error" id="pi-err"></div>
+            <div class="form-success" id="pi-suc"></div>
+            <div class="psection">
+              <div class="psection-title">Basic Info</div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Full Name</label
+                  ><input
+                    class="form-input"
+                    id="pi-name"
+                    placeholder="Your real name"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Country</label
+                  ><input
+                    class="form-input"
+                    id="pi-country"
+                    placeholder="e.g. India"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Region</label>
+                  <select class="form-select" id="pi-region">
+                    <option value="">Select…</option>
+                    <option value="NA">NA</option>
+                    <option value="EU">EU</option>
+                    <option value="SA">SA</option>
+                    <option value="APAC">APAC</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Age</label
+                  ><input
+                    class="form-input"
+                    type="number"
+                    id="pi-age"
+                    placeholder="e.g. 22"
+                    min="13"
+                  />
+                </div>
+              </div>
+              <div class="form-group" style="margin-top: 4px">
+                <label class="form-label">Bio</label
+                ><textarea
+                  class="form-input"
+                  id="pi-bio"
+                  rows="3"
+                  placeholder="Tell the community about yourself…"
+                ></textarea>
+              </div>
+              <div style="margin-top: 14px; display: flex; gap: 10px">
+                <button class="btn btn-primary" onclick="saveProfile()">
+                  Save Changes
+                </button>
+                <button class="btn btn-ghost" onclick="loadData()">
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Profile Picture ───────────────── -->
+          <div class="ppanel" id="panel-avatar">
+            <div class="ptitle">Profile Picture</div>
+            <div class="psub">Set your avatar using a direct image URL.</div>
+            <div class="form-error" id="av-err"></div>
+            <div class="form-success" id="av-suc"></div>
+            <div class="psection">
+              <div class="psection-title">Image URL</div>
+              <div style="display: flex; gap: 12px; align-items: flex-start">
+                <img
+                  id="av-preview"
+                  style="
+                    width: 52px;
+                    height: 52px;
+                    border-radius: 50%;
+                    object-fit: cover;
+                    background: var(--bg-4);
+                    border: 2px solid var(--border);
+                    display: none;
+                    flex-shrink: 0;
+                  "
+                  src=""
+                  onerror="this.style.display='none'"
+                  alt=""
+                />
+                <div style="flex: 1">
+                  <input
+                    class="form-input"
+                    id="av-url"
+                    placeholder="https://i.imgur.com/youravatar.jpg"
+                    oninput="prevAv(this.value)"
+                  />
+                  <div
+                    style="
+                      font-size: 11px;
+                      color: var(--text-3);
+                      margin-top: 4px;
+                    "
+                  >
+                    Paste a direct link to a square JPG, PNG or GIF.
+                  </div>
+                </div>
+              </div>
+              <div style="margin-top: 14px; display: flex; gap: 8px">
+                <button class="btn btn-primary" onclick="saveAvatar()">
+                  Save Picture
+                </button>
+                <button class="btn btn-ghost" onclick="clearAvatar()">
+                  Remove
+                </button>
+              </div>
+            </div>
+            <div class="psection">
+              <div class="psection-title">Generated Avatars</div>
+              <div
+                id="generated-avatars-container"
+                style="
+                  display: flex;
+                  gap: 8px;
+                  flex-wrap: wrap;
+                  margin-top: 10px;
+                "
+              ></div>
+            </div>
+          </div>
+
+          <!-- ── Change Username ───────────────── -->
+          <div class="ppanel" id="panel-username">
+            <div class="ptitle">Change Username</div>
+            <div class="psub">
+              Your username appears on your profile and all match records.
+            </div>
+            <div class="form-error" id="un-err"></div>
+            <div class="form-success" id="un-suc"></div>
+            <div class="psection">
+              <div class="psection-title">New Username</div>
+              <div
+                style="
+                  font-size: 13px;
+                  color: var(--text-2);
+                  margin-bottom: 12px;
+                "
+              >
+                Current: <strong id="cur-un">—</strong>
+              </div>
+              <div class="form-group">
+                <label class="form-label">New Username</label>
+                <input
+                  class="form-input"
+                  id="un-new"
+                  placeholder="new_username"
+                  maxlength="50"
+                  oninput="checkUnInput(this)"
+                />
+                <div
+                  id="un-hint2"
+                  style="font-size: 11px; color: var(--text-3); margin-top: 3px"
+                >
+                  Min 3 chars, letters/numbers/underscores
+                </div>
+              </div>
+              <button
+                class="btn btn-primary"
+                style="margin-top: 4px"
+                onclick="changeUsername()"
+              >
+                Update Username
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Change Password ───────────────── -->
+          <div class="ppanel" id="panel-password">
+            <div class="ptitle">Change Password</div>
+            <div class="psub">
+              Keep your account secure with a strong password.
+            </div>
+            <div class="form-error" id="pw-err"></div>
+            <div class="form-success" id="pw-suc"></div>
+            <div class="psection">
+              <div class="psection-title">Update Password</div>
+              <div class="form-group">
+                <label class="form-label">Current Password</label
+                ><input
+                  class="form-input"
+                  type="password"
+                  id="pw-cur"
+                  placeholder="••••••••"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">New Password</label>
+                <input
+                  class="form-input"
+                  type="password"
+                  id="pw-new"
+                  placeholder="Min 8 characters"
+                  oninput="pwStr(this.value)"
+                />
+                <div class="pw-bar">
+                  <div class="pw-fill2" id="pw-f2"></div>
+                </div>
+                <div
+                  id="pw-sl"
+                  style="font-size: 11px; color: var(--text-3); margin-top: 2px"
+                >
+                  —
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Confirm New Password</label
+                ><input
+                  class="form-input"
+                  type="password"
+                  id="pw-con"
+                  placeholder="Repeat password"
+                />
+              </div>
+              <button
+                class="btn btn-primary"
+                style="margin-top: 4px"
+                onclick="changePassword()"
+              >
+                Change Password
+              </button>
+            </div>
+          </div>
+
+          <!-- ── Notifications ─────────────────── -->
+          <div class="ppanel" id="panel-notifications">
+            <div class="ptitle">Notifications</div>
+            <div class="psub">
+              Updates about approvals, bans, contentions and matches.
+            </div>
+            <div class="psection">
+              <div
+                class="psection-title"
+                style="
+                  display: flex;
+                  align-items: center;
+                  justify-content: space-between;
+                "
+              >
+                <span>Recent</span>
+                <button class="btn btn-ghost btn-sm" onclick="markAllRead()">
+                  Mark all read
+                </button>
+              </div>
+              <div id="notif-list">
+                <div class="loading"><div class="spinner"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Danger Zone ───────────────────── -->
+          <div class="ppanel" id="panel-danger">
+            <div class="ptitle">Danger Zone</div>
+            <div class="psub">Permanent and irreversible actions.</div>
+            <div class="danger-box">
+              <div
+                style="
+                  font-family: var(--font-cond);
+                  font-size: 11px;
+                  font-weight: 700;
+                  text-transform: uppercase;
+                  letter-spacing: 0.8px;
+                  color: var(--red);
+                  margin-bottom: 10px;
+                "
+              >
+                ⚠️ Delete Account
+              </div>
+              <div
+                style="
+                  font-size: 13px;
+                  color: var(--text-2);
+                  margin-bottom: 14px;
+                  line-height: 1.6;
+                "
+              >
+                Deleting your account will deactivate your profile and remove it
+                from public view. Match history is preserved but your profile
+                will no longer be accessible.
+              </div>
+              <div class="form-error" id="del-err"></div>
+              <div class="form-group">
+                <label class="form-label">Confirm Password</label
+                ><input
+                  class="form-input"
+                  type="password"
+                  id="del-pw"
+                  placeholder="Enter your password"
+                />
+              </div>
+              <button
+                style="
+                  margin-top: 10px;
+                  background: var(--red);
+                  border: 1px solid var(--red);
+                  color: #fff;
+                  padding: 8px 18px;
+                  font-family: var(--font-cond);
+                  font-size: 13px;
+                  font-weight: 700;
+                  letter-spacing: 0.5px;
+                  text-transform: uppercase;
+                  cursor: pointer;
+                  border-radius: var(--radius);
+                "
+                onclick="deleteAccount()"
+              >
+                Delete My Account
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      function renderAvatars() {
+        const container = document.getElementById(
+          "generated-avatars-container"
+        );
+        const avatarSeeds = [
+          "bottts/vlr1",
+          "bottts/vlr2",
+          "bottts/vlr3",
+          "avataaars/vlr1",
+          "avataaars/vlr2",
+        ];
+
+        container.innerHTML = avatarSeeds
+          .map((s) => {
+            const style = s.split("/")[0];
+            const seed = s.split("/")[1];
+            const url = `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}`;
+
+            return `
+      <img src="${url}" 
+            style="width:48px; height:48px; border-radius:50%; border:2px solid var(--border); cursor:pointer; object-fit:cover; background:var(--bg-4); transition: transform 0.2s;" 
+            onclick="pickAv('${url}')" 
+            onmouseover="this.style.transform='scale(1.1)'"
+            onmouseout="this.style.transform='scale(1.0)'"
+            onerror="this.style.display='none'" 
+            title="Use this avatar">`;
+          })
+          .join("");
+      }
+
+      renderAvatars();
+
+      const user = API.getUser();
+      if (!user) {
+        console.warn("No user found, redirecting to login");
+        location.href = "/login.html";
+      }
+
+      let playerData = null;
+
+      // ── Panel switch ──────────────────────────────────
+      function showPanel(id) {
+        document
+          .querySelectorAll(".ppanel")
+          .forEach((p) => p.classList.remove("active"));
+        document
+          .querySelectorAll(".pnav-item")
+          .forEach((n) => n.classList.remove("active"));
+        document.getElementById("panel-" + id).classList.add("active");
+        document.getElementById("nav-" + id)?.classList.add("active");
+        if (id === "notifications") loadNotifs();
+        if (id === "matches") loadMatchHistory();
+        if (id === "games") loadGames();
+      }
+
+      // ── Load everything ───────────────────────────────
+      async function loadData() {
+        try {
+          document.getElementById("profile-loading").style.display = "block";
+          console.log("Fetching /auth/me...");
+          const me = await API.get("/auth/me");
+          console.log("Received:", me);
+          const p = me.player;
+          if (!p) {
+            const errDiv = document.getElementById("profile-error");
+            errDiv.textContent =
+              "No player profile linked to your account. You may need to complete registration first.";
+            errDiv.style.display = "block";
+            showToast("No player profile linked", "error");
+            console.warn("No player profile found", me);
+            return;
+          }
+          playerData = p;
+          console.log("Player data loaded:", p);
+
+          // Approval banner
+          const banner = document.getElementById("approval-banner");
+          if (p.approval_status === "pending") {
+            banner.className = "approval-banner ab-pending";
+            banner.innerHTML =
+              "⏳ Your account is <strong>pending approval</strong>. An admin will review your game registrations. You have limited access until approved.";
+            banner.style.display = "flex";
+          } else if (p.approval_status === "rejected") {
+            banner.className = "approval-banner ab-rejected";
+            banner.innerHTML = `⛔ Your registration was <strong>not approved</strong>. Reason: ${
+              p.rejection_reason || "Not specified"
+            }. Contact support via <a href="/contentions.html" style="color:inherit;font-weight:700">Contentions</a>.`;
+            banner.style.display = "flex";
+          }
+
+          // Hero
+          const avEl = document.getElementById("ph-avatar");
+          const ltEl = document.getElementById("ph-av-letter");
+          if (p.profile_image) {
+            ltEl.outerHTML = `<img id="ph-av-img" src="${p.profile_image}" alt="" onerror="this.style.display='none'" style="width:100%;height:100%;object-fit:cover">`;
+          } else {
+            ltEl.textContent = (me.username || "?")[0].toUpperCase();
+          }
+          document.getElementById("ph-ign").textContent = me.username;
+          document.getElementById("ph-name").textContent =
+            p.name + (p.country ? " · " + p.country : "");
+          document.getElementById("cur-un").textContent = me.username;
+
+          document.getElementById("ph-pills").innerHTML = [
+            p.team_name
+              ? `<div class="ph-pill team" onclick="location.href='/team-detail.html?id=${
+                  p.team_id
+                }'">${
+                  p.team_logo
+                    ? `<img src="${p.team_logo}" onerror="this.style.display='none'" alt="">`
+                    : ""
+                }${p.team_name}</div>`
+              : '<div class="ph-pill">Free Agent</div>',
+            p.region
+              ? `<div class="ph-pill">${Components.regionBadge(p.region)}</div>`
+              : "",
+            p.age ? `<div class="ph-pill">Age ${p.age}</div>` : "",
+            p.rank
+              ? `<div class="ph-pill" style="color:var(--accent);font-weight:700">${p.rank}</div>`
+              : "",
+            p.approval_status !== "approved"
+              ? `<div class="ph-pill" style="color:var(--yellow);border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08)">${
+                  p.approval_status === "pending" ? "⏳ Pending" : "⛔ Rejected"
+                }</div>`
+              : "",
+          ].join("");
+
+          // Stats
+          const stats = await API.get("/players/" + p.player_id)
+            .then((d) => d.stats || [])
+            .catch(() => []);
+          const gs = (n) => {
+            const s = stats.find((x) => x.stat_name === n);
+            return s ? Number(s.value) : null;
+          };
+          const fmtS = (v, d = 2) => (v != null ? v.toFixed(d) : "—");
+          const fmtI = (v) => (v != null ? Math.round(v) + "" : "—");
+          document.getElementById("st-rating").textContent = fmtS(gs("rating"));
+          document.getElementById("st-acs").textContent = fmtI(gs("acs"));
+          document.getElementById("st-kd").textContent = fmtS(gs("kd"));
+          document.getElementById("st-kast").textContent =
+            gs("kast") != null ? Math.round(gs("kast")) + "%" : "—";
+          document.getElementById("st-adr").textContent = fmtI(gs("adr"));
+
+          // Populate edit form
+          try {
+            document.getElementById("pi-name").value = p.name || "";
+            document.getElementById("pi-country").value = p.country || "";
+            document.getElementById("pi-region").value = p.region || "";
+            document.getElementById("pi-age").value = p.age || "";
+            document.getElementById("pi-bio").value = p.bio || "";
+            if (p.profile_image) {
+              document.getElementById("av-url").value = p.profile_image;
+              prevAv(p.profile_image);
+            }
+          } catch (formErr) {
+            console.warn("Form elements missing:", formErr.message);
+          }
+
+          // Info sidebar
+          document.getElementById("ov-info").innerHTML = [
+            ["Real Name", p.name],
+            ["Username", me.username],
+            ["Country", p.country || "—"],
+            ["Region", p.region || "—"],
+            ["Age", p.age || "—"],
+            ["Rank", p.rank || "—"],
+            ["Team", p.team_name || "Free Agent"],
+            ["Status", p.approval_status === "approved" ? "Active" : "Pending"],
+            ["Since", Components.formatDate(p.created_at)],
+          ]
+            .map(
+              ([l, v]) =>
+                `<div class="info-r"><span class="l">${l}</span><span class="v">${v}</span></div>`
+            )
+            .join("");
+
+          // Load recent matches for overview
+          loadOverviewMatches(p.player_id, p.team_name);
+
+          // Social links
+          loadSocialLinks(p.player_id);
+
+          // Notification badge
+          loadNotifBadge();
+          document.getElementById("profile-loading").style.display = "none";
+        } catch (e) {
+          // console.error("loadData error:", e);
+          // document.getElementById("profile-loading").style.display = "none";
+          // const errDiv = document.getElementById("profile-error");
+          // errDiv.textContent =
+          //   "Error: " + (e?.error || e?.message || "Failed to load profile");
+          // errDiv.style.display = "block";
+          // showToast(e?.error || "Failed to load profile", "error");
+        }
+      }
+
+      async function loadOverviewMatches(pid, teamName) {
+        try {
+          const pdata = await API.get("/players/" + pid);
+          const matches = pdata.matches || [];
+          const wins = matches.filter(
+            (m) =>
+              m.status === "Completed" &&
+              m.winner_name &&
+              ((m.t1_name === teamName && m.winner_name === m.t1_name) ||
+                (m.t2_name === teamName && m.winner_name === m.t2_name))
+          ).length;
+          const losses =
+            matches.filter((m) => m.status === "Completed" && m.winner_name)
+              .length - wins;
+
+          document.getElementById("ov-record").innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:var(--radius-lg);overflow:hidden">
+      ${[
+        ["Wins", wins, "var(--green)"],
+        ["Losses", losses, "var(--red)"],
+        [
+          "W%",
+          wins + losses > 0
+            ? Math.round((wins / (wins + losses)) * 100) + "%"
+            : "—",
+          "var(--accent)",
+        ],
+      ]
+        .map(
+          ([l, v, c]) =>
+            `<div style="background:var(--bg-3);padding:12px;text-align:center"><div style="font-family:var(--font-head);font-size:20px;font-weight:700;color:${c}">${v}</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-top:2px">${l}</div></div>`
+        )
+        .join("")}
+    </div>`;
+
+          const el = document.getElementById("ov-matches");
+          if (!matches.length) {
+            el.innerHTML =
+              '<div style="padding:32px;text-align:center;color:var(--text-3)">No match history yet.</div>';
+            return;
+          }
+          el.innerHTML = matches
+            .slice(0, 5)
+            .map((m) => matchRowHTML(m, teamName))
+            .join("");
+        } catch (e) {
+          document.getElementById("ov-matches").innerHTML =
+            '<div style="padding:24px;color:var(--text-3)">Failed to load</div>';
+        }
+      }
+
+      async function loadSocialLinks(pid) {
+        try {
+          const links = await API.get(`/contentions/social/player/${pid}`);
+          const icons = {
+            twitter: "🐦",
+            twitch: "💜",
+            youtube: "▶️",
+            instagram: "📸",
+            website: "🌐",
+            liquipedia: "📖",
+          };
+          if (!links.length) return;
+          document.getElementById("ov-social").innerHTML = links
+            .map(
+              (l) => `
+      <a href="${l.url}" target="_blank" rel="noopener" class="social-link">
+        <span class="social-icon">${icons[l.platform] || "🔗"}</span>
+        <span>${l.display_name || l.platform}</span>
+        ${
+          l.is_verified
+            ? '<span style="color:var(--blue);font-size:12px" title="Verified">✓</span>'
+            : ""
+        }
+      </a>`
+            )
+            .join("");
+        } catch (e) {}
+      }
+
+      async function loadGames() {
+        const el = document.getElementById("games-list");
+        try {
+          const me = await API.get("/auth/me");
+          const pid = me.player?.player_id;
+          if (!pid) {
+            el.innerHTML =
+              '<div style="color:var(--text-3)">No player profile.</div>';
+            return;
+          }
+
+          const [allAccounts, allGames] = await Promise.all([
+            API.get("/auth/game-accounts").catch(() => []),
+            API.get("/admin/dropdown-data")
+              .then((d) => d.games || [])
+              .catch(() => []),
+          ]);
+
+          // Group accounts by game
+          const byGame = {};
+          allAccounts.forEach((a) => {
+            if (!byGame[a.game_id]) byGame[a.game_id] = [];
+            byGame[a.game_id].push(a);
+          });
+
+          const icons = { Valorant: "🎯", BGMI: "🔫", CS2: "💣" };
+
+          el.innerHTML =
+            allGames
+              .map((g) => {
+                const accts = byGame[g.game_id] || [];
+                const primary = accts.find((a) => a.is_primary) || accts[0];
+                return `
+      <div class="psection" style="margin-bottom:10px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:${
+          accts.length ? "10px" : "0"
+        }">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="font-size:24px">${icons[g.name] || "🎮"}</div>
+            <div>
+              <div style="font-family:var(--font-head);font-size:15px;font-weight:700">${
+                g.name
+              }</div>
+              <div style="font-size:11px;color:var(--text-3)">${
+                g.publisher || ""
+              } · ${g.type || ""}</div>
+            </div>
+          </div>
+          <span class="gstatus gs-approved">${accts.length} account${
+                  accts.length !== 1 ? "s" : ""
+                }</span>
+        </div>
+        ${
+          accts.length
+            ? `
+        <div style="display:flex;flex-direction:column;gap:6px">
+          ${accts
+            .map(
+              (a) => `
+          <div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--bg-4);border-radius:var(--radius);border:1px solid ${
+            a.is_primary ? "rgba(255,70,85,.3)" : "var(--border)"
+          }">
+            ${
+              a.is_primary
+                ? '<span style="font-size:10px;padding:2px 6px;background:var(--accent-dim);border:1px solid rgba(255,70,85,.3);color:var(--accent);border-radius:3px;font-family:var(--font-cond);font-weight:700">MAIN</span>'
+                : ""
+            }
+            <div style="flex:1;min-width:0">
+              <div style="font-family:var(--font-head);font-size:13px;font-weight:700">${
+                a.username
+              }${a.tag ? "#" + a.tag : ""}</div>
+              <div style="font-size:11px;color:var(--text-3)">Rank: ${
+                a.rank || "—"
+              } · Level ${a.level || "—"} · Active ${Components.formatDate(
+                a.last_active
+              )}</div>
+            </div>
+            ${
+              !a.is_primary
+                ? `<button class="btn btn-ghost btn-sm" onclick="setPrimary(${a.account_id},${g.game_id})" title="Set as main">⭐ Set Main</button>`
+                : ""
+            }
+            <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="removeGameAccount(${
+              a.account_id
+            })" title="Remove">✕</button>
+          </div>`
+            )
+            .join("")}
+        </div>`
+            : `<div style="font-size:12px;color:var(--text-3);padding:4px 0">No accounts linked yet.</div>`
+        }
+        <button class="btn btn-ghost btn-sm" style="margin-top:8px" onclick="showAddAccount(${
+          g.game_id
+        },'${g.name}')">+ Add ${g.name} Account</button>
+      </div>`;
+              })
+              .join("") ||
+            '<div style="color:var(--text-3)">No games found.</div>';
+        } catch (e) {
+          el.innerHTML =
+            '<div style="color:var(--text-3)">Failed to load game registrations.</div>';
+        }
+      }
+
+      async function setPrimary(accountId, gameId) {
+        const me = await API.get("/auth/me").catch(() => null);
+        const pid = me?.player?.player_id;
+        if (!pid) return;
+        await fetch("/api/auth/game-account", {
+          method: "POST",
+          headers: API.headers(),
+          body: JSON.stringify({
+            player_id: pid,
+            game_id: gameId,
+            account_id: accountId,
+            is_primary: true,
+            username: "__noop__",
+          }),
+        }).catch(() => {});
+        // Actually call set primary by deleting and re-adding — simpler: just reload
+        await loadGames();
+        showToast("Main account updated!");
+      }
+
+      async function removeGameAccount(accountId) {
+        if (!confirm("Remove this game account?")) return;
+        try {
+          const res = await fetch("/api/auth/game-account", {
+            method: "DELETE",
+            headers: API.headers(),
+            body: JSON.stringify({ account_id: accountId }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw d;
+          await loadGames();
+          showToast("Account removed");
+        } catch (e) {
+          showToast(e.error || "Failed", "error");
+        }
+      }
+
+      function showAddAccount(gameId, gameName) {
+        const icons = { Valorant: "🎯", BGMI: "🔫", CS2: "💣" };
+        const existing = document.getElementById("add-account-modal");
+        if (existing) existing.remove();
+        const modal = document.createElement("div");
+        modal.id = "add-account-modal";
+        modal.style.cssText =
+          "position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px";
+        modal.innerHTML = `
+  <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px;max-width:420px;width:100%;box-shadow:var(--shadow-lg);position:relative">
+    <button onclick="this.closest('#add-account-modal').remove()" style="position:absolute;top:12px;right:12px;background:none;border:none;color:var(--text-3);font-size:20px;cursor:pointer">×</button>
+    <div style="font-family:var(--font-head);font-size:17px;font-weight:700;margin-bottom:16px">${
+      icons[gameName] || "🎮"
+    } Add ${gameName} Account</div>
+    <div id="aa-err" class="form-error" style="display:none"></div>
+    <div class="form-grid">
+      <div class="form-group"><label class="form-label">In-Game Username *</label><input class="form-input" id="aa-un" placeholder="YourName"></div>
+      <div class="form-group"><label class="form-label">Tag</label><input class="form-input" id="aa-tag" placeholder="NA1"></div>
+      <div class="form-group"><label class="form-label">Rank</label>
+        <select class="form-select" id="aa-rank">
+          <option value="">—</option>
+          ${
+            gameName === "Valorant"
+              ? "<option>Radiant</option><option>Immortal 3</option><option>Immortal 2</option><option>Immortal 1</option><option>Ascendant 3</option><option>Diamond 3</option>"
+              : gameName === "BGMI"
+              ? "<option>Conqueror</option><option>Ace</option><option>Ace Master</option><option>Diamond</option><option>Platinum</option>"
+              : "<option>Global Elite</option><option>Supreme</option><option>Legendary Eagle</option><option>Master Guardian</option>"
+          }
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Level</label><input class="form-input" type="number" id="aa-level" placeholder="e.g. 200" min="1"></div>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);margin-top:4px;cursor:pointer">
+      <input type="checkbox" id="aa-primary"> Set as main ${gameName} account
+    </label>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn-primary" onclick="doAddAccount(${gameId})">Link Account</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('add-account-modal').remove()">Cancel</button>
+    </div>
+  </div>`;
+        document.body.appendChild(modal);
+        document.getElementById("aa-un").focus();
+      }
+
+      async function doAddAccount(gameId) {
+        const err = document.getElementById("aa-err");
+        const un = document.getElementById("aa-un").value.trim();
+        if (!un) {
+          err.textContent = "Username required";
+          err.style.display = "block";
+          return;
+        }
+        const me = await API.get("/auth/me").catch(() => null);
+        const pid = me?.player?.player_id;
+        if (!pid) {
+          err.textContent = "Player profile not found";
+          err.style.display = "block";
+          return;
+        }
+        try {
+          const res = await fetch("/api/auth/game-account", {
+            method: "POST",
+            headers: API.headers(),
+            body: JSON.stringify({
+              player_id: pid,
+              game_id: gameId,
+              username: un,
+              tag: document.getElementById("aa-tag").value.trim() || null,
+              rank: document.getElementById("aa-rank").value || null,
+              level: document.getElementById("aa-level").value || null,
+              is_primary: document.getElementById("aa-primary").checked,
+            }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw d;
+          document.getElementById("add-account-modal").remove();
+          await loadGames();
+          showToast("Account linked!");
+        } catch (e) {
+          err.textContent = e.error || "Failed";
+          err.style.display = "block";
+        }
+      }
+
+      async function loadMatchHistory() {
+        const el = document.getElementById("mh-content");
+        try {
+          const me = await API.get("/auth/me");
+          const pid = me.player?.player_id;
+          if (!pid) {
+            el.innerHTML = Components.empty("No player profile");
+            return;
+          }
+          const pdata = await API.get("/players/" + pid);
+          const matches = pdata.matches || [];
+          const teamName = pdata.team_name || "";
+          if (!matches.length) {
+            el.innerHTML = Components.empty("No match history yet");
+            return;
+          }
+          el.innerHTML = `<div class="card">
+      <div class="m-row" style="background:var(--bg-3);cursor:default;pointer-events:none;font-family:var(--font-cond);font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3)">
+        <span>Date</span><span>Match</span><span>Score</span><span>Event</span><span>W/L</span>
+      </div>
+      ${matches.map((m) => matchRowHTML(m, teamName)).join("")}
+    </div>`;
+        } catch (e) {
+          el.innerHTML = Components.empty("Failed to load");
+        }
+      }
+
+      function matchRowHTML(m, teamName) {
+        const done = m.status === "Completed";
+        const isT1 = m.t1_name === teamName;
+        const won =
+          done &&
+          m.winner_name &&
+          ((isT1 && m.winner_name === m.t1_name) ||
+            (!isT1 && m.winner_name === m.t2_name));
+        const lost = done && m.winner_name && !won;
+        const score = done
+          ? `<span style="font-family:var(--font-head);font-size:15px;font-weight:700"><span style="${
+              won ? "" : "color:var(--text-3)"
+            }">${
+              m.score_team1
+            }</span><span style="color:var(--text-3);font-size:11px;margin:0 3px">:</span><span style="${
+              lost ? "color:var(--text-3)" : ""
+            }">${m.score_team2}</span></span>`
+          : '<span style="color:var(--text-3)">—</span>';
+        const badge = !done
+          ? '<span class="wlbadge wl-u">—</span>'
+          : won
+          ? '<span class="wlbadge wl-w">W</span>'
+          : '<span class="wlbadge wl-l">L</span>';
+        return `<div class="m-row" onclick="location.href='/match-detail.html?id=${
+          m.match_id
+        }'">
+    <span style="font-size:12px;color:var(--text-3)">${Components.formatDate(
+      m.date
+    )}</span>
+    <div><div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap">
+      <span style="font-family:var(--font-head);font-size:13px;font-weight:700">${
+        m.t1_name
+      }</span>
+      <span style="color:var(--text-3);font-size:11px">vs</span>
+      <span style="font-family:var(--font-head);font-size:13px;font-weight:700">${
+        m.t2_name
+      }</span>
+    </div></div>
+    ${score}
+    <div style="font-size:11px;color:var(--accent);font-family:var(--font-cond);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${
+      m.tournament_name || ""
+    }</div>
+    ${badge}
+  </div>`;
+      }
+
+      // ── Save profile ──────────────────────────────────
+      async function saveProfile() {
+        const err = document.getElementById("pi-err");
+        const suc = document.getElementById("pi-suc");
+        err.style.display = "none";
+        suc.style.display = "none";
+        const body = {
+          name: document.getElementById("pi-name").value.trim(),
+          country: document.getElementById("pi-country").value.trim() || null,
+          region: document.getElementById("pi-region").value || null,
+          age: document.getElementById("pi-age").value || null,
+          bio: document.getElementById("pi-bio").value.trim() || null,
+        };
+        if (!body.name) {
+          err.textContent = "Name cannot be empty";
+          err.style.display = "block";
+          return;
+        }
+        try {
+          const res = await fetch("/api/auth/profile", {
+            method: "PUT",
+            headers: API.headers(),
+            body: JSON.stringify(body),
+          });
+          const d = await res.json();
+          if (!res.ok) throw d;
+          suc.textContent = "✅ Profile saved!";
+          suc.style.display = "block";
+          await loadData();
+          showToast("Profile saved!");
+        } catch (e) {
+          err.textContent = e.error || "Failed";
+          err.style.display = "block";
+        }
+      }
+
+      // ── Avatar ────────────────────────────────────────
+      function prevAv(url) {
+        const p = document.getElementById("av-preview");
+        if (url) {
+          p.src = url;
+          p.style.display = "block";
+        } else p.style.display = "none";
+      }
+      function pickAv(url) {
+        document.getElementById("av-url").value = url;
+        prevAv(url);
+      }
+      async function saveAvatar() {
+        const err = document.getElementById("av-err");
+        const suc = document.getElementById("av-suc");
+        err.style.display = "none";
+        suc.style.display = "none";
+        const url = document.getElementById("av-url").value.trim();
+        try {
+          const res = await fetch("/api/auth/profile", {
+            method: "PUT",
+            headers: API.headers(),
+            body: JSON.stringify({ profile_image: url || null }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw d;
+          suc.textContent = "✅ Avatar updated!";
+          suc.style.display = "block";
+          await loadData();
+          showToast("Avatar saved!");
+        } catch (e) {
+          err.textContent = e.error || "Failed";
+          err.style.display = "block";
+        }
+      }
+      async function clearAvatar() {
+        document.getElementById("av-url").value = "";
+        prevAv("");
+        await saveAvatar();
+      }
+
+      // ── Username ──────────────────────────────────────
+      function checkUnInput(input) {
+        const h = document.getElementById("un-hint2");
+        const v = input.value;
+        if (!v) return;
+        if (!/^[a-zA-Z0-9_]+$/.test(v)) {
+          h.style.color = "var(--red)";
+          h.textContent = "Only letters, numbers, underscores";
+          return;
+        }
+        if (v.length < 3) {
+          h.style.color = "var(--yellow)";
+          h.textContent = "Too short";
+          return;
+        }
+        h.style.color = "var(--green)";
+        h.textContent = "✓ Valid";
+      }
+      async function changeUsername() {
+        const err = document.getElementById("un-err");
+        const suc = document.getElementById("un-suc");
+        err.style.display = "none";
+        suc.style.display = "none";
+        const newU = document.getElementById("un-new").value.trim();
+        if (!newU) {
+          err.textContent = "Enter new username";
+          err.style.display = "block";
+          return;
+        }
+        try {
+          const res = await fetch("/api/auth/username", {
+            method: "PUT",
+            headers: API.headers(),
+            body: JSON.stringify({ new_username: newU }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw d;
+          API.login(d.token, { ...API.getUser(), username: d.username });
+          suc.textContent =
+            '✅ Username updated to "' + d.username + '"! Refreshing…';
+          suc.style.display = "block";
+          setTimeout(() => location.reload(), 1400);
+        } catch (e) {
+          err.textContent = e.error || "Failed";
+          err.style.display = "block";
+        }
+      }
+
+      // ── Password ──────────────────────────────────────
+      function pwStr(v) {
+        const f = document.getElementById("pw-f2");
+        const l = document.getElementById("pw-sl");
+        if (!v) {
+          f.style.width = "0";
+          l.textContent = "—";
+          return;
+        }
+        let s = 0;
+        if (v.length >= 8) s++;
+        if (v.length >= 12) s++;
+        if (/[A-Z]/.test(v)) s++;
+        if (/[0-9]/.test(v)) s++;
+        if (/[^a-zA-Z0-9]/.test(v)) s++;
+        const lv = [
+          ["20%", "var(--red)", "Very weak"],
+          ["40%", "#f97316", "Weak"],
+          ["60%", "var(--yellow)", "Fair"],
+          ["80%", "#84cc16", "Good"],
+          ["100%", "var(--green)", "Strong"],
+        ];
+        const [w, c, t] = lv[Math.min(s, 4)];
+        f.style.width = w;
+        f.style.background = c;
+        l.style.color = c;
+        l.textContent = t;
+      }
+      async function changePassword() {
+        const err = document.getElementById("pw-err");
+        const suc = document.getElementById("pw-suc");
+        err.style.display = "none";
+        suc.style.display = "none";
+        const cur = document.getElementById("pw-cur").value,
+          nw = document.getElementById("pw-new").value,
+          con = document.getElementById("pw-con").value;
+        if (!cur || !nw || !con) {
+          err.textContent = "All fields required";
+          err.style.display = "block";
+          return;
+        }
+        if (nw.length < 8) {
+          err.textContent = "Min 8 characters";
+          err.style.display = "block";
+          return;
+        }
+        if (nw !== con) {
+          err.textContent = "Passwords do not match";
+          err.style.display = "block";
+          return;
+        }
+        try {
+          const res = await fetch("/api/auth/password", {
+            method: "PUT",
+            headers: API.headers(),
+            body: JSON.stringify({ current_password: cur, new_password: nw }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw d;
+          suc.textContent = "✅ Password changed!";
+          suc.style.display = "block";
+          document.getElementById("pw-cur").value = "";
+          document.getElementById("pw-new").value = "";
+          document.getElementById("pw-con").value = "";
+          pwStr("");
+          showToast("Password updated!");
+        } catch (e) {
+          err.textContent = e.error || "Failed";
+          err.style.display = "block";
+        }
+      }
+
+      // ── Notifications ─────────────────────────────────
+      async function loadNotifBadge() {
+        try {
+          const n = await API.get("/auth/notifications");
+          const u = n.filter((x) => !x.is_read).length;
+          const b = document.getElementById("notif-count-badge");
+          if (u > 0) {
+            b.textContent = u;
+            b.style.display = "";
+          } else b.style.display = "none";
+        } catch (e) {}
+      }
+      async function loadNotifs() {
+        const el = document.getElementById("notif-list");
+        try {
+          const n = await API.get("/auth/notifications");
+          if (!n.length) {
+            el.innerHTML =
+              '<div style="color:var(--text-3);font-size:13px;padding:8px 0">No notifications yet.</div>';
+            return;
+          }
+          el.innerHTML = n
+            .map(
+              (x) =>
+                `<div class="notif-item"><div class="ndot ${
+                  x.is_read ? "read" : ""
+                }"></div><div style="flex:1"><div style="font-size:13px;color:${
+                  x.is_read ? "var(--text-3)" : "var(--text-1)"
+                };line-height:1.5">${
+                  x.message
+                }</div><div style="font-size:11px;color:var(--text-3);margin-top:2px">${
+                  x.created_at ? new Date(x.created_at).toLocaleString() : "—"
+                }</div></div></div>`
+            )
+            .join("");
+        } catch (e) {
+          el.innerHTML =
+            '<div style="color:var(--text-3)">Failed to load</div>';
+        }
+      }
+      async function markAllRead() {
+        try {
+          await fetch("/api/auth/notifications/read", {
+            method: "PUT",
+            headers: API.headers(),
+          });
+          await loadNotifs();
+          await loadNotifBadge();
+          showToast("All read");
+        } catch (e) {}
+      }
+
+      // ── Delete account ────────────────────────────────
+      async function deleteAccount() {
+        const err = document.getElementById("del-err");
+        err.style.display = "none";
+        const pw = document.getElementById("del-pw").value;
+        if (!pw) {
+          err.textContent = "Password required";
+          err.style.display = "block";
+          return;
+        }
+        if (
+          !confirm(
+            "Are you sure? This will deactivate your account permanently."
+          )
+        )
+          return;
+        try {
+          const res = await fetch("/api/auth/account", {
+            method: "DELETE",
+            headers: API.headers(),
+            body: JSON.stringify({ password: pw }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw d;
+          API.logout();
+        } catch (e) {
+          err.textContent = e.error || "Failed";
+          err.style.display = "block";
+        }
+      }
+
+      // ── Init ──────────────────────────────────────────
+      console.log("Profile page loaded, calling loadData()");
+      loadData().catch((e) => {
+        console.error("Uncaught error in loadData:", e);
+      });
+    </script>
+  </body>
+</html>

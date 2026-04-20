@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Player — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      .player-hero-bg {
+        background: linear-gradient(160deg, #170508 0%, #0f1117 60%);
+        border-bottom: 1px solid var(--border);
+        padding: 36px 0 28px;
+        position: relative;
+        overflow: hidden;
+      }
+      .player-hero-bg::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(
+          ellipse at 20% 50%,
+          rgba(255, 70, 85, 0.08) 0%,
+          transparent 60%
+        );
+      }
+      .p-hero-inner {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 28px;
+        flex-wrap: wrap;
+      }
+      .p-avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--bg-4), var(--bg-3));
+        border: 3px solid var(--border-2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-head);
+        font-size: 36px;
+        font-weight: 700;
+        color: var(--accent);
+        flex-shrink: 0;
+        overflow: hidden;
+      }
+      .p-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .p-ign {
+        font-family: var(--font-head);
+        font-size: 38px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        line-height: 1;
+      }
+      .p-real {
+        font-size: 15px;
+        color: var(--text-2);
+        margin-top: 4px;
+      }
+      .p-pills {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 12px;
+        flex-wrap: wrap;
+      }
+      .pill {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 12px;
+        border-radius: 20px;
+        background: var(--bg-4);
+        border: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--text-2);
+      }
+      .pill.team {
+        background: var(--accent-dim);
+        border-color: rgba(255, 70, 85, 0.3);
+        color: var(--text-1);
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .pill.team:hover {
+        background: rgba(255, 70, 85, 0.2);
+      }
+      .pill img {
+        width: 16px;
+        height: 16px;
+        object-fit: contain;
+      }
+
+      .stat-row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 1px;
+        background: var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        margin-top: 20px;
+      }
+      .stat-cell {
+        background: var(--bg-3);
+        padding: 14px 10px;
+        text-align: center;
+      }
+      .stat-cell .sv {
+        font-family: var(--font-head);
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--text-1);
+        line-height: 1;
+      }
+      .stat-cell .sv.red {
+        color: var(--accent);
+      }
+      .stat-cell .sv.grn {
+        color: var(--green);
+      }
+      .stat-cell .sl {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+        margin-top: 3px;
+      }
+
+      .ctabs {
+        display: flex;
+        border-bottom: 1px solid var(--border);
+        background: var(--bg-2);
+        position: sticky;
+        top: var(--nav-h);
+        z-index: 50;
+      }
+      .ctab {
+        padding: 14px 22px;
+        cursor: pointer;
+        font-family: var(--font-cond);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        color: var(--text-3);
+        border-bottom: 2px solid transparent;
+        transition: all var(--trans);
+      }
+      .ctab:hover {
+        color: var(--text-1);
+      }
+      .ctab.on {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      .m-row {
+        display: grid;
+        grid-template-columns: 100px 1fr 110px 140px 60px;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background var(--trans);
+      }
+      .m-row:hover {
+        background: var(--bg-3);
+      }
+      .m-row:last-child {
+        border-bottom: none;
+      }
+      .wl {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 20px;
+        border-radius: 3px;
+        font-family: var(--font-cond);
+        font-size: 11px;
+        font-weight: 700;
+      }
+      .wl.w {
+        background: rgba(74, 222, 128, 0.12);
+        color: var(--green);
+        border: 1px solid rgba(74, 222, 128, 0.3);
+      }
+      .wl.l {
+        background: rgba(248, 113, 113, 0.1);
+        color: var(--red);
+        border: 1px solid rgba(248, 113, 113, 0.3);
+      }
+      .wl.u {
+        background: var(--bg-4);
+        color: var(--text-3);
+        border: 1px solid var(--border);
+      }
+
+      .info-r {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      .info-r:last-child {
+        border-bottom: none;
+      }
+      .info-r .l {
+        color: var(--text-3);
+      }
+      .info-r .v {
+        font-weight: 600;
+        font-family: var(--font-cond);
+        font-size: 14px;
+      }
+
+      .acc-card {
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .acc-card .gname {
+        font-family: var(--font-head);
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .acc-card .gign {
+        font-size: 12px;
+        color: var(--text-3);
+        margin-top: 2px;
+      }
+      .rank-chip {
+        font-family: var(--font-cond);
+        font-size: 14px;
+        font-weight: 700;
+        padding: 4px 12px;
+        background: var(--accent-dim);
+        border: 1px solid rgba(255, 70, 85, 0.3);
+        border-radius: 3px;
+        color: var(--accent);
+      }
+      @media (max-width: 768px) {
+        .stat-row {
+          grid-template-columns: repeat(3, 1fr);
+        }
+        .m-row {
+          grid-template-columns: 80px 1fr 80px;
+        }
+      }
+    </style>
+  </head>
+  <body data-page="Players">
+    <div id="navbar-mount"></div>
+    <div id="root">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 60vh;
+          flex-direction: column;
+          gap: 16px;
+        "
+      >
+        <div class="spinner"></div>
+        <span style="color: var(--text-3)">Loading player...</span>
+      </div>
+    </div>
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      const playerId = new URLSearchParams(location.search).get("id");
+      if (!playerId) location.href = "/players.html";
+
+      async function load() {
+        try {
+          const p = await API.get("/players/" + playerId);
+          document.title = (p.username || p.name) + " — Esports Hub";
+          render(p);
+        } catch (e) {
+          document.getElementById("root").innerHTML =
+            '<div style="text-align:center;padding:80px"><div style="font-size:40px">😞</div><div style="margin-top:12px;color:var(--text-3)">Player not found</div></div>';
+        }
+      }
+
+      function fmtD(v, d = 2) {
+        return v != null ? Number(v).toFixed(d) : "—";
+      }
+      function fmtI(v) {
+        return v != null ? Math.round(Number(v)) : "—";
+      }
+
+      function formatStatValue(value, statName) {
+        if (value === null || value === undefined) return "—";
+        const v = Number(value);
+        // Stats that should show percentage
+        if (
+          statName.toLowerCase().includes("percent") ||
+          statName.toLowerCase().includes("rate") ||
+          statName.toLowerCase().includes("kast")
+        ) {
+          return fmtI(v) + "%";
+        }
+        // Stats that should be integers (kill/death/round based)
+        if (
+          statName.toLowerCase().includes("kill") ||
+          statName.toLowerCase().includes("death") ||
+          statName.toLowerCase().includes("round") ||
+          statName.toLowerCase().includes("acs") ||
+          statName.toLowerCase().includes("adr") ||
+          statName.toLowerCase().includes("count")
+        ) {
+          return fmtI(v);
+        }
+        // Default to 2 decimal places for ratios and other stats
+        return fmtD(v, 2);
+      }
+
+      function render(p) {
+        const stats = Array.isArray(p.stats) ? p.stats : [];
+        const matches = Array.isArray(p.matches) ? p.matches : [];
+        const accounts = Array.isArray(p.accounts) ? p.accounts : [];
+
+        const done = matches.filter((m) => m.status === "Completed");
+        const wins = done.filter((m) => {
+          if (!m.winner_name) return false;
+          return (
+            (m.t1_name === p.team_name && m.winner_name === m.t1_name) ||
+            (m.t2_name === p.team_name && m.winner_name === m.t2_name)
+          );
+        }).length;
+        const losses = done.length - wins;
+
+        const letter = (p.username || p.name || "?")[0].toUpperCase();
+
+        /* ── Hero ─────────────────────────── */
+        const hero = `
+  <div class="player-hero-bg">
+    <div class="container">
+      <div class="p-hero-inner">
+        <div class="p-avatar">${
+          p.profile_image
+            ? `<img src="${p.profile_image}" alt="" onerror="this.parentElement.textContent='${letter}'">`
+            : `${letter}`
+        }</div>
+        <div style="flex:1;min-width:0">
+          <div class="p-ign">${p.username || p.name}</div>
+          <div class="p-real">${p.name}${
+          p.country ? ` &nbsp;·&nbsp; ${p.country}` : ""
+        }</div>
+          <div class="p-pills">
+            ${
+              p.team_name
+                ? `<div class="pill team" onclick="location.href='/team-detail.html?id=${
+                    p.team_id
+                  }'">${
+                    p.team_logo
+                      ? `<img src="${p.team_logo}" onerror="this.style.display='none'" alt="">`
+                      : ""
+                  }<span>${p.team_name}</span></div>`
+                : `<div class="pill">Free Agent</div>`
+            }
+            ${
+              p.region
+                ? `<div class="pill">${Components.regionBadge(p.region)}</div>`
+                : ""
+            }
+            ${p.age ? `<div class="pill">Age ${p.age}</div>` : ""}
+            ${
+              p.rank
+                ? `<div class="pill" style="color:var(--accent);font-weight:700">${p.rank}</div>`
+                : ""
+            }
+            <div class="pill" style="${
+              p.status === "Active"
+                ? "background:rgba(34,197,94,.1);border-color:rgba(34,197,94,.3);color:var(--live)"
+                : ""
+            }">${p.status || "Active"}</div>
+          </div>
+          ${
+            stats.length
+              ? `<div class="stat-row">
+            ${(() => {
+              const aggregatedStats = {};
+              stats.forEach((s) => {
+                if (!aggregatedStats[s.stat_name]) {
+                  aggregatedStats[s.stat_name] = { values: [], count: 0 };
+                }
+                aggregatedStats[s.stat_name].values.push(Number(s.value));
+                aggregatedStats[s.stat_name].count++;
+              });
+
+              return Object.entries(aggregatedStats)
+                .map(([statName, data]) => {
+                  const avgValue =
+                    data.values.reduce((a, b) => a + b, 0) / data.count;
+                  const displayName = statName
+                    .replace(/_/g, " ")
+                    .split(" ")
+                    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                    .join(" ");
+                  const formattedValue = formatStatValue(avgValue, statName);
+                  return `<div class="stat-cell"><div class="sv">${formattedValue}</div><div class="sl">${displayName}</div></div>`;
+                })
+                .join("");
+            })()}
+          </div>`
+              : ""
+          }
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+        /* ── Tabs ─────────────────────────── */
+        const tabs = `
+  <div class="ctabs" id="ptabs">
+    <div class="ctab on"  onclick="swTab(this,'ov')">Overview</div>
+    <div class="ctab"     onclick="swTab(this,'mx')">Matches (${
+      matches.length
+    })</div>
+    ${
+      accounts.length
+        ? `<div class="ctab" onclick="swTab(this,'acc')">Game Accounts</div>`
+        : ""
+    }
+  </div>`;
+
+        /* ── Match rows ───────────────────── */
+        const mRows = matches.length
+          ? matches
+              .map((m) => {
+                const done2 = m.status === "Completed";
+                const isT1 = m.t1_name === p.team_name;
+                const won =
+                  done2 &&
+                  m.winner_name &&
+                  ((isT1 && m.winner_name === m.t1_name) ||
+                    (!isT1 && m.winner_name === m.t2_name));
+                const lost = done2 && m.winner_name && !won;
+                const score = done2
+                  ? `<span style="font-family:var(--font-head);font-size:17px;font-weight:700">
+          <span style="${won ? "" : "color:var(--text-3)"}">${
+                      m.score_team1
+                    }</span>
+          <span style="color:var(--text-3);font-size:12px;margin:0 3px">:</span>
+          <span style="${lost ? "color:var(--text-3)" : ""}">${
+                      m.score_team2
+                    }</span>
+        </span>`
+                  : `<span style="color:var(--text-3)">—</span>`;
+                const badge = !done2
+                  ? '<span class="wl u">—</span>'
+                  : won
+                  ? '<span class="wl w">W</span>'
+                  : '<span class="wl l">L</span>';
+                return `
+    <div class="m-row" onclick="location.href='/match-detail.html?id=${
+      m.match_id
+    }'">
+      <span style="font-size:12px;color:var(--text-3)">${Components.formatDate(
+        m.date
+      )}</span>
+      <div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+          ${
+            m.t1_logo
+              ? `<img style="width:16px;height:16px;object-fit:contain" src="${m.t1_logo}" onerror="this.style.display='none'" alt="">`
+              : ""
+          }
+          <span style="font-family:var(--font-head);font-size:13px;font-weight:700;${
+            isT1 && lost ? "color:var(--text-3)" : ""
+          }">${m.t1_name}</span>
+          <span style="color:var(--text-3);font-size:11px">vs</span>
+          ${
+            m.t2_logo
+              ? `<img style="width:16px;height:16px;object-fit:contain" src="${m.t2_logo}" onerror="this.style.display='none'" alt="">`
+              : ""
+          }
+          <span style="font-family:var(--font-head);font-size:13px;font-weight:700;${
+            !isT1 && lost ? "color:var(--text-3)" : ""
+          }">${m.t2_name}</span>
+        </div>
+      </div>
+      ${score}
+      <div style="min-width:0">
+        <div style="font-size:12px;color:var(--accent);font-family:var(--font-cond);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${
+          m.tournament_name || ""
+        }</div>
+        ${
+          m.round
+            ? `<div style="font-size:11px;color:var(--text-3);margin-top:1px">${m.round}</div>`
+            : ""
+        }
+      </div>
+      ${badge}
+    </div>`;
+              })
+              .join("")
+          : `<div style="padding:40px;text-align:center;color:var(--text-3)">No match history found.</div>`;
+
+        /* ── Account cards ────────────────── */
+        const accCards = accounts
+          .map(
+            (a) => `
+  <div class="acc-card">
+    <div>
+      <div class="gname">${a.game_name}</div>
+      <div class="gign">${a.username}${a.tag ? "#" + a.tag : ""} · Lv. ${
+              a.level || "—"
+            }</div>
+      <div style="font-size:11px;color:var(--text-3);margin-top:3px">Last active: ${Components.formatDate(
+        a.last_active
+      )}</div>
+    </div>
+    <span class="rank-chip">${a.rank || "Unranked"}</span>
+  </div>`
+          )
+          .join("");
+
+        /* ── Overview sidebar ─────────────── */
+        const sidebar = `
+  <aside>
+    <div class="card" style="padding:20px">
+      <div style="font-family:var(--font-cond);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:12px">Player Info</div>
+      ${[
+        ["Real Name", p.name],
+        ["IGN", p.username || "—"],
+        ["Country", p.country || "—"],
+        ["Region", p.region || "—"],
+        ["Age", p.age || "—"],
+        ["Rank", p.rank || "—"],
+        ["Status", p.status || "Active"],
+        ["Team", p.team_name || "Free Agent"],
+        ["Since", Components.formatDate(p.created_at)],
+      ]
+        .map(
+          ([l, v]) =>
+            `<div class="info-r"><span class="l">${l}</span><span class="v">${v}</span></div>`
+        )
+        .join("")}
+    </div>
+    ${
+      done.length
+        ? `
+    <div class="card" style="padding:20px;margin-top:12px">
+      <div style="font-family:var(--font-cond);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:12px">Record (recent)</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);border-radius:var(--radius-lg);overflow:hidden">
+        <div style="background:var(--bg-3);padding:14px;text-align:center"><div style="font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--green)">${wins}</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-top:2px">Wins</div></div>
+        <div style="background:var(--bg-3);padding:14px;text-align:center"><div style="font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--red)">${losses}</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-top:2px">Losses</div></div>
+        <div style="background:var(--bg-3);padding:14px;text-align:center"><div style="font-family:var(--font-head);font-size:22px;font-weight:700;color:var(--accent)">${
+          wins + losses > 0 ? Math.round((wins / (wins + losses)) * 100) : 0
+        }%</div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-top:2px">W%</div></div>
+      </div>
+    </div>`
+        : ""
+    }
+    ${
+      p.bio
+        ? `<div class="card" style="padding:20px;margin-top:12px"><div style="font-family:var(--font-cond);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:10px">Bio</div><p style="font-size:13px;color:var(--text-2);line-height:1.7">${p.bio}</p></div>`
+        : ""
+    }
+    ${
+      accounts.length
+        ? `<div class="card" style="padding:20px;margin-top:12px"><div style="font-family:var(--font-cond);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:12px">Game Accounts</div><div style="display:flex;flex-direction:column;gap:8px">${accCards}</div></div>`
+        : ""
+    }
+  </aside>`;
+
+        /* ── Assemble ──────────────────────── */
+        document.getElementById("root").innerHTML =
+          hero +
+          tabs +
+          `
+  <div id="tab-ov">
+    <div class="container" style="padding-top:24px">
+      <div class="layout">
+        <div>
+          <div class="section-header"><span class="section-title">Recent Matches</span></div>
+          <div class="card">
+            ${
+              matches.length
+                ? matches
+                    .slice(0, 5)
+                    .map((m) => {
+                      const done2 = m.status === "Completed";
+                      const isT1 = m.t1_name === p.team_name;
+                      const won =
+                        done2 &&
+                        m.winner_name &&
+                        ((isT1 && m.winner_name === m.t1_name) ||
+                          (!isT1 && m.winner_name === m.t2_name));
+                      const lost = done2 && m.winner_name && !won;
+                      const score = done2
+                        ? `<span style="font-family:var(--font-head);font-size:17px;font-weight:700">
+                    <span style="${won ? "" : "color:var(--text-3)"}">${
+                            m.score_team1
+                          }</span>
+                    <span style="color:var(--text-3);font-size:12px;margin:0 3px">:</span>
+                    <span style="${lost ? "color:var(--text-3)" : ""}">${
+                            m.score_team2
+                          }</span>
+                  </span>`
+                        : `<span style="color:var(--text-3)">—</span>`;
+                      const badge = !done2
+                        ? '<span class="wl u">—</span>'
+                        : won
+                        ? '<span class="wl w">W</span>'
+                        : '<span class="wl l">L</span>';
+                      return `
+              <div class="m-row" onclick="location.href='/match-detail.html?id=${
+                m.match_id
+              }'">
+                <span style="font-size:12px;color:var(--text-3)">${Components.formatDate(
+                  m.date
+                )}</span>
+                <div>
+                  <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                    ${
+                      m.t1_logo
+                        ? `<img style="width:16px;height:16px;object-fit:contain" src="${m.t1_logo}" onerror="this.style.display='none'" alt="">`
+                        : ""
+                    }
+                    <span style="font-family:var(--font-head);font-size:13px;font-weight:700;${
+                      isT1 && lost ? "color:var(--text-3)" : ""
+                    }">${m.t1_name}</span>
+                    <span style="color:var(--text-3);font-size:11px">vs</span>
+                    ${
+                      m.t2_logo
+                        ? `<img style="width:16px;height:16px;object-fit:contain" src="${m.t2_logo}" onerror="this.style.display='none'" alt="">`
+                        : ""
+                    }
+                    <span style="font-family:var(--font-head);font-size:13px;font-weight:700;${
+                      !isT1 && lost ? "color:var(--text-3)" : ""
+                    }">${m.t2_name}</span>
+                  </div>
+                </div>
+                ${score}
+                <div style="min-width:0">
+                  <div style="font-size:12px;color:var(--accent);font-family:var(--font-cond);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${
+                    m.tournament_name || ""
+                  }</div>
+                  ${
+                    m.round
+                      ? `<div style="font-size:11px;color:var(--text-3);margin-top:1px">${m.round}</div>`
+                      : ""
+                  }
+                </div>
+                ${badge}
+              </div>`;
+                    })
+                    .join("")
+                : '<div style="padding:40px;text-align:center;color:var(--text-3)">No matches yet.</div>'
+            }
+          </div>
+        </div>
+        ${sidebar}
+      </div>
+    </div>
+  </div>
+  <div id="tab-mx" style="display:none">
+    <div class="container" style="padding-top:24px">
+      <div class="card">
+        <div class="m-row" style="background:var(--bg-3);cursor:default;pointer-events:none;font-family:var(--font-cond);font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3)">
+          <span>Date</span><span>Match</span><span>Score</span><span>Event</span><span>W/L</span>
+        </div>
+        ${
+          matches.length
+            ? matches
+                .map((m) => {
+                  const done2 = m.status === "Completed";
+                  const isT1 = m.t1_name === p.team_name;
+                  const won =
+                    done2 &&
+                    m.winner_name &&
+                    ((isT1 && m.winner_name === m.t1_name) ||
+                      (!isT1 && m.winner_name === m.t2_name));
+                  const lost = done2 && m.winner_name && !won;
+                  const score = done2
+                    ? `<span style="font-family:var(--font-head);font-size:17px;font-weight:700">
+                <span style="${won ? "" : "color:var(--text-3)"}">${
+                        m.score_team1
+                      }</span>
+                <span style="color:var(--text-3);font-size:12px;margin:0 3px">:</span>
+                <span style="${lost ? "color:var(--text-3)" : ""}">${
+                        m.score_team2
+                      }</span>
+              </span>`
+                    : `<span style="color:var(--text-3)">—</span>`;
+                  const badge = !done2
+                    ? '<span class="wl u">—</span>'
+                    : won
+                    ? '<span class="wl w">W</span>'
+                    : '<span class="wl l">L</span>';
+                  return `
+          <div class="m-row" onclick="location.href='/match-detail.html?id=${
+            m.match_id
+          }'">
+            <span style="font-size:12px;color:var(--text-3)">${Components.formatDate(
+              m.date
+            )}</span>
+            <div>
+              <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+                ${
+                  m.t1_logo
+                    ? `<img style="width:16px;height:16px;object-fit:contain" src="${m.t1_logo}" onerror="this.style.display='none'" alt="">`
+                    : ""
+                }
+                <span style="font-family:var(--font-head);font-size:13px;font-weight:700;${
+                  isT1 && lost ? "color:var(--text-3)" : ""
+                }">${m.t1_name}</span>
+                <span style="color:var(--text-3);font-size:11px">vs</span>
+                ${
+                  m.t2_logo
+                    ? `<img style="width:16px;height:16px;object-fit:contain" src="${m.t2_logo}" onerror="this.style.display='none'" alt="">`
+                    : ""
+                }
+                <span style="font-family:var(--font-head);font-size:13px;font-weight:700;${
+                  !isT1 && lost ? "color:var(--text-3)" : ""
+                }">${m.t2_name}</span>
+              </div>
+            </div>
+            ${score}
+            <div style="min-width:0">
+              <div style="font-size:12px;color:var(--accent);font-family:var(--font-cond);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${
+                m.tournament_name || ""
+              }</div>
+              ${
+                m.round
+                  ? `<div style="font-size:11px;color:var(--text-3);margin-top:1px">${m.round}</div>`
+                  : ""
+              }
+            </div>
+            ${badge}
+          </div>`;
+                })
+                .join("")
+            : '<div style="padding:40px;text-align:center;color:var(--text-3)">No match history found.</div>'
+        }
+      </div>
+    </div>
+  </div>
+  ${
+    accounts.length
+      ? `<div id="tab-acc" style="display:none"><div class="container" style="padding-top:24px"><div style="display:flex;flex-direction:column;gap:10px;max-width:600px">${accCards}</div></div></div>`
+      : ""
+  }
+  `;
+      }
+
+      function swTab(btn, id) {
+        document
+          .querySelectorAll(".ctab")
+          .forEach((t) => t.classList.remove("on"));
+        document
+          .querySelectorAll('[id^="tab-"]')
+          .forEach((p) => (p.style.display = "none"));
+        btn.classList.add("on");
+        const el = document.getElementById("tab-" + id);
+        if (el) el.style.display = "";
+      }
+
+      load();
+    </script>
+  </body>
+</html>

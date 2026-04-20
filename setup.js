@@ -1,0 +1,127 @@
+/**
+ * VLR Clone — Setup Script (Multi-Admin Password Reset)
+ * Run: node setup.js
+ *
+ * This script:
+ *  1. Connects to MySQL (uses .env settings)
+ *  2. Creates the admin user with a properly hashed password
+ *  3. Is safe to re-run (uses INSERT IGNORE / UPDATE)
+ */
+
+require('dotenv').config();
+const mysql  = require('mysql2/promise');
+const bcrypt = require('bcryptjs');
+const readline = require('readline');
+
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const ask = (q) => new Promise(res => rl.question(q, res));
+
+async function main() {
+  console.log('\n\x1b[36m╔══════════════════════════════════════╗');
+  console.log('║   VLR.GG Clone — Setup Wizard        ║');
+  console.log('╚══════════════════════════════════════╝\x1b[0m\n');
+
+  const db = await mysql.createPool({
+    host:     process.env.DB_HOST || 'localhost',
+    user:     process.env.DB_USER || 'root',
+    password: process.env.DB_PASS || '',
+    database: process.env.DB_NAME || 'vlr_clone',
+    waitForConnections: true,
+  });
+
+  // Test DB connection
+  try {
+    await db.query('SELECT 1');
+    console.log('\x1b[32m✓ Database connected\x1b[0m');
+  } catch (e) {
+    console.error('\x1b[31m✗ Cannot connect to database:', e.message, '\x1b[0m');
+    console.error('  → Make sure MySQL (XAMPP) is running and .env has correct credentials');
+    process.exit(1);
+  }
+
+  // Fetch ALL admins
+  const [admins] = await db.query(
+    "SELECT u.user_id, u.username FROM Users u JOIN Role r ON u.role_id = r.role_id WHERE r.name = 'Admin'"
+  ).catch(() => [[]]);
+
+  // If admins exist → reset passwords
+  if (admins.length > 0) {
+    console.log(`\x1b[33m⚠ ${admins.length} admin(s) found in database\x1b[0m`);
+
+    const choice = await ask('Reset password for ALL admins? (y/N): ');
+    if (choice.toLowerCase() !== 'y') {
+      console.log('\nSkipped.');
+      rl.close();
+      process.exit(0);
+    }
+
+    // 🔥 Ask once (better UX)
+    let newPass = '';
+    while (newPass.length < 8) {
+      newPass = await ask('Enter new password for ALL admins (min 8 chars): ');
+      if (newPass.length < 8) console.log('Password too short');
+    }
+
+    const hashed = bcrypt.hashSync(newPass, 10);
+
+    for (let admin of admins) {
+      console.log(`Updating: ${admin.username}`);
+
+      await db.query(
+        'UPDATE Users SET password = ? WHERE user_id = ?',
+        [hashed, admin.user_id]
+      );
+
+      console.log(`  ✓ Updated ${admin.username}`);
+    }
+
+    console.log('\n\x1b[32m✓ All admin passwords updated!\x1b[0m');
+    rl.close();
+    process.exit(0);
+  }
+
+  // If NO admins exist → create one
+  console.log('\n\x1b[36mNo admins found. Create one:\x1b[0m');
+
+  const username = await ask('Admin username [admin]: ') || 'admin';
+  const email    = await ask('Admin email [admin@esportshub.gg]: ') || 'admin@esportshub.gg';
+
+  let password = '';
+  while (password.length < 8) {
+    password = await ask('Admin password (min 8 chars): ');
+    if (password.length < 8) console.log('Password too short');
+  }
+
+  const hashed = bcrypt.hashSync(password, 10);
+
+  // Get Admin role_id
+  const [[roleRow]] = await db.query("SELECT role_id FROM Role WHERE name = 'Admin'");
+  if (!roleRow) {
+    console.error('\x1b[31m✗ Role "Admin" not found.\x1b[0m');
+    rl.close();
+    process.exit(1);
+  }
+
+  // Insert user
+  const [userRes] = await db.query(
+    'INSERT INTO Users (username, password, role_id) VALUES (?, ?, ?)',
+    [username, hashed, roleRow.role_id]
+  );
+
+  // Insert admin profile
+  await db.query(
+    'INSERT INTO Admins (user_id, email, game_id) VALUES (?, ?, ?)',
+    [userRes.insertId, email, null]
+  );
+
+  console.log(`\n\x1b[32m✓ Admin "${username}" created!\x1b[0m`);
+
+  rl.close();
+  process.exit(0);
+}
+
+// Run script
+main().catch(err => {
+  console.error('\x1b[31mSetup failed:\x1b[0m', err.message);
+  process.exit(1);
+});

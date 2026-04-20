@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Event — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body data-page="Tournaments">
+    <div id="navbar-mount"></div>
+    <div id="event-content">
+      <div class="loading" style="padding: 80px">
+        <div class="spinner"></div>
+        <span>Loading...</span>
+      </div>
+    </div>
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const eventId = params.get("id");
+      if (!eventId) location.href = "/tournaments.html";
+
+      // ── Bracket Generator Helpers (from admin.html) ──────────────────
+      const UPPER_ROUNDS = ["Upper Quarterfinals", "Upper Quarterfinal", "Upper Semifinals", "Upper Semifinal", "Upper Final", "Upper Finals"];
+      const LOWER_ROUNDS = ["Lower Round 1", "Lower Round 2", "Lower Round 3", "Lower Round 4", "Lower Semifinals", "Lower Semifinal", "Lower Final", "Lower Finals"];
+      const GROUP_ROUNDS = ["Group Stage", "Swiss", "Playoffs", "Round Robin"];
+      const FINAL_ROUNDS = ["Grand Final", "Final"];
+
+      function classifyRound(r) {
+        if (!r) return "group";
+        const ru = r.trim();
+        if (UPPER_ROUNDS.some((x) => ru.toLowerCase().includes(x.toLowerCase()))) return "upper";
+        if (LOWER_ROUNDS.some((x) => ru.toLowerCase().includes(x.toLowerCase()))) return "lower";
+        if (FINAL_ROUNDS.some((x) => ru.toLowerCase().includes(x.toLowerCase()))) return "final";
+        if (GROUP_ROUNDS.some((x) => ru.toLowerCase().includes(x.toLowerCase()))) return "group";
+        if (ru.toLowerCase().includes("upper")) return "upper";
+        if (ru.toLowerCase().includes("lower")) return "lower";
+        if (ru.toLowerCase().includes("final")) return "final";
+        return "group";
+      }
+
+      const ROUND_ORDER_UPPER = ["Upper Quarterfinals", "Upper Quarterfinal", "Upper Semifinals", "Upper Semifinal", "Semifinal", "Upper Final", "Upper Finals"];
+      const ROUND_ORDER_LOWER = ["Lower Round 1", "Lower Round 2", "Lower Round 3", "Lower Round 4", "Lower Semifinals", "Lower Semifinal", "Lower Final", "Lower Finals"];
+      const ROUND_ORDER_GROUP = ["Group Stage", "Swiss", "Round Robin", "Playoffs", "Quarterfinal"];
+      const ROUND_ORDER_FINAL = ["Grand Final", "Final"];
+
+      function sortRounds(rounds, type) {
+        const order = type === "upper" ? ROUND_ORDER_UPPER : type === "lower" ? ROUND_ORDER_LOWER : type === "final" ? ROUND_ORDER_FINAL : ROUND_ORDER_GROUP;
+        return rounds.sort((a, b) => {
+          const ai = order.findIndex((o) => a.toLowerCase().includes(o.toLowerCase()));
+          const bi = order.findIndex((o) => b.toLowerCase().includes(o.toLowerCase()));
+          if (ai === -1 && bi === -1) return a.localeCompare(b);
+          if (ai === -1) return 1;
+          if (bi === -1) return -1;
+          return ai - bi;
+        });
+      }
+
+      function matchCard(m) {
+        const done = m.status === "Completed";
+        // Adjusted to use winner_name which is what event-detail uses
+        const t1win = done && m.winner_name === m.t1_name;
+        const t2win = done && m.winner_name === m.t2_name;
+        const hasWinner = done && m.winner_name;
+        
+        return `
+        <div class="bk-match" onclick="location.href='/match-detail.html?id=${m.match_id}'" title="${m.t1_name} vs ${m.t2_name}">
+          <div class="bk-team ${t1win ? "bk-win" : hasWinner ? "bk-lose" : ""}">
+            ${m.t1_logo ? `<img class="bk-logo" src="${m.t1_logo}" onerror="this.style.display='none'" alt="">` : `<div class="bk-logo-ph">${(m.t1_name || "?")[0]}</div>`}
+            <span class="bk-tname">${m.t1_name || "TBD"}</span>
+            <span class="bk-score ${t1win ? "bk-sw" : hasWinner ? "bk-sl" : ""}">${done ? m.score_team1 : "—"}</span>
+          </div>
+          <div class="bk-team ${t2win ? "bk-win" : hasWinner ? "bk-lose" : ""}">
+            ${m.t2_logo ? `<img class="bk-logo" src="${m.t2_logo}" onerror="this.style.display='none'" alt="">` : `<div class="bk-logo-ph">${(m.t2_name || "?")[0]}</div>`}
+            <span class="bk-tname">${m.t2_name || "TBD"}</span>
+            <span class="bk-score ${t2win ? "bk-sw" : hasWinner ? "bk-sl" : ""}">${done ? m.score_team2 : "—"}</span>
+          </div>
+          ${hasWinner ? `<div class="bk-match-footer">${m.round || ""} ${m.best_of ? `BO${m.best_of}` : ""} ${m.map_name ? `· ${m.map_name}` : ""}</div>` : ""}
+        </div>`;
+      }
+
+      function buildBand(label, accentColor, sortedRounds, byRound) {
+        if (!sortedRounds.length) return "";
+        const CARD_W = 210, CARD_H = 80, COL_GAP = 56, COL_W = CARD_W + COL_GAP;
+        const cols = sortedRounds.map((r) => byRound[r] || []);
+        const maxCards = Math.max(...cols.map((c) => c.length));
+        const baseGap = 20;
+
+        function colCenters(ci, count) {
+          const gap = baseGap * Math.pow(2, ci);
+          const step = CARD_H + gap;
+          const totalH = count * CARD_H + (count - 1) * gap;
+          const bigH = maxCards * CARD_H + (maxCards - 1) * baseGap;
+          const offsetY = (bigH - totalH) / 2;
+          return Array.from({ length: count }, (_, i) => offsetY + i * step + CARD_H / 2);
+        }
+
+        let svgLines = "";
+        for (let ci = 0; ci < cols.length - 1; ci++) {
+          const srcCtrs = colCenters(ci, cols[ci].length);
+          const dstCtrs = colCenters(ci + 1, cols[ci + 1].length);
+          const srcX = ci * COL_W + CARD_W;
+          const dstX = (ci + 1) * COL_W;
+          for (let di = 0; di < dstCtrs.length; di++) {
+            const s1 = srcCtrs[di * 2], s2 = srcCtrs[di * 2 + 1], dst = dstCtrs[di];
+            const midX = srcX + COL_GAP / 2;
+            if (s1 !== undefined && s2 !== undefined) {
+              const midY = (s1 + s2) / 2;
+              svgLines += `<line x1="${srcX}" y1="${s1}" x2="${midX}" y2="${s1}" stroke="#363a4e" stroke-width="1.5"/>`;
+              svgLines += `<line x1="${srcX}" y1="${s2}" x2="${midX}" y2="${s2}" stroke="#363a4e" stroke-width="1.5"/>`;
+              svgLines += `<line x1="${midX}" y1="${s1}" x2="${midX}" y2="${s2}" stroke="#363a4e" stroke-width="1.5"/>`;
+              svgLines += `<line x1="${midX}" y1="${midY}" x2="${dstX}" y2="${dst}" stroke="#363a4e" stroke-width="1.5"/>`;
+            } else if (s1 !== undefined) {
+              svgLines += `<line x1="${srcX}" y1="${s1}" x2="${dstX}" y2="${dst}" stroke="#363a4e" stroke-width="1.5"/>`;
+            }
+          }
+        }
+
+        const svgH = maxCards * CARD_H + (maxCards - 1) * baseGap + 40;
+        const svgW = cols.length * COL_W + 20;
+        const colsHTML = sortedRounds.map((r, ci) => {
+            const ms = cols[ci];
+            const ctrs = colCenters(ci, ms.length);
+            const cards = ms.map((m, mi) => `<div style="position:absolute;top:${ctrs[mi] - CARD_H / 2}px;left:0;width:${CARD_W}px">${matchCard(m)}</div>`).join("");
+            return `<div style="position:absolute;left:${ci * COL_W}px;top:0;width:${CARD_W}px;height:${svgH}px">
+              <div style="font-family:var(--font-cond);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:${accentColor};text-align:center;position:absolute;top:0;left:0;right:0">${r}</div>
+              <div style="position:absolute;top:22px;left:0;right:0;bottom:0">${cards}</div>
+            </div>`;
+        }).join("");
+
+        return `<div style="margin-bottom:28px">
+          <div style="font-family:var(--font-cond);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-left:3px solid ${accentColor};color:${accentColor};padding:5px 12px;background:var(--bg-3);border-radius:0 4px 4px 0;display:inline-block;margin-bottom:12px">${label}</div>
+          <div style="position:relative;width:${svgW}px;height:${svgH + 22}px">
+            <svg width="${svgW}" height="${svgH + 22}" style="position:absolute;top:22px;left:0;overflow:visible;pointer-events:none">${svgLines}</svg>
+            ${colsHTML}
+          </div>
+        </div>`;
+      }
+
+      function getBracketHTML(matches, tname) {
+        if (!matches || !matches.length) return `<div class="empty">No matches available to form a bracket</div>`;
+        
+        const byRound = {};
+        matches.forEach((m) => {
+          const r = m.round || "Round 1";
+          if (!byRound[r]) byRound[r] = [];
+          byRound[r].push(m);
+        });
+        const allRounds = Object.keys(byRound);
+        const upperR = sortRounds(allRounds.filter((r) => classifyRound(r) === "upper"), "upper");
+        const lowerR = sortRounds(allRounds.filter((r) => classifyRound(r) === "lower"), "lower");
+        const groupR = sortRounds(allRounds.filter((r) => classifyRound(r) === "group"), "group");
+        const finalR = sortRounds(allRounds.filter((r) => classifyRound(r) === "final"), "final");
+        const otherR = allRounds.filter((r) => !["upper", "lower", "group", "final"].includes(classifyRound(r)));
+
+        return `
+        <style>
+          .bk-wrap { overflow-x:auto; overflow-y:visible; padding:4px 0 16px; }
+          .bk-match { background:var(--bg-3); border:1px solid var(--border-2); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:border-color var(--trans),box-shadow var(--trans); }
+          .bk-match:hover { border-color:var(--accent); box-shadow:0 4px 20px rgba(255,70,85,.2); }
+          .bk-team { display:flex; align-items:center; gap:6px; padding:7px 8px; border-bottom:1px solid var(--border); font-size:12px; }
+          .bk-team:last-of-type { border-bottom:none; }
+          .bk-win  { background:rgba(74,222,128,.07); }
+          .bk-lose { opacity:.5; }
+          .bk-logo { width:16px; height:16px; object-fit:contain; flex-shrink:0; }
+          .bk-logo-ph { width:16px; height:16px; border-radius:2px; background:var(--bg-4); display:flex; align-items:center; justify-content:center; font-family:var(--font-head); font-size:9px; font-weight:700; color:var(--text-3); flex-shrink:0; }
+          .bk-tname { font-family:var(--font-head); font-size:12px; font-weight:700; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+          .bk-score { font-family:var(--font-cond); font-size:14px; font-weight:700; min-width:18px; text-align:right; color:var(--text-3); flex-shrink:0; }
+          .bk-sw { color:var(--green); } .bk-sl { color:var(--text-3); }
+          .bk-match-footer { padding:3px 8px; font-size:10px; color:var(--text-3); background:var(--bg-2); border-top:1px solid var(--border); font-family:var(--font-cond); }
+          .bk-sep { height:1px; background:var(--border); margin:4px 0 24px; }
+        </style>
+        <div class="card" style="padding:20px">
+          <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+            <div><div style="font-family:var(--font-head);font-size:18px;font-weight:700">${tname}</div><div style="font-size:12px;color:var(--text-3);margin-top:2px">${matches.length} matches · Click any to view detail</div></div>
+            <div style="display:flex;gap:14px;align-items:center;font-size:11px">
+              <span style="color:var(--green);display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);display:inline-block;border-radius:1px"></span>Winner</span>
+              <span style="color:var(--text-3);display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:var(--bg-3);border:1px solid var(--border);display:inline-block;border-radius:1px"></span>Pending</span>
+            </div>
+          </div>
+          <div class="bk-wrap">
+            ${groupR.length ? buildBand("Group Stage", "#60a5fa", groupR, byRound) : ""}
+            ${groupR.length && (upperR.length || lowerR.length) ? '<div class="bk-sep"></div>' : ""}
+            ${upperR.length ? buildBand("Upper Bracket", "#a78bfa", upperR, byRound) : ""}
+            ${lowerR.length ? buildBand("Lower Bracket", "#fbbf24", lowerR, byRound) : ""}
+            ${finalR.length ? buildBand("Grand Final", "#ff4655", finalR, byRound) : ""}
+            ${otherR.length ? buildBand("Matches", "var(--text-2)", otherR, byRound) : ""}
+            ${!groupR.length && !upperR.length && !lowerR.length && !finalR.length && !otherR.length ? buildBand("Bracket", "var(--text-2)", allRounds, byRound) : ""}
+          </div>
+        </div>`;
+      }
+      // ────────────────────────────────────────────────────────────────────────
+
+      async function loadEvent() {
+        try {
+          const ev = await API.get(`/tournaments/${eventId}`);
+          document.title = `${ev.name} — Esports Hub`;
+
+          const statusBadge =
+            ev.status === "Live"
+              ? `<span class="badge badge-live">Live</span>`
+              : ev.status === "Upcoming"
+              ? `<span class="badge badge-upcoming">Upcoming</span>`
+              : `<span class="badge badge-done">Completed</span>`;
+
+          // Group matches by round
+          const byRound = {};
+          (ev.matches || []).forEach((m) => {
+            const r = m.round || "Unknown Round";
+            if (!byRound[r]) byRound[r] = [];
+            byRound[r].push(m);
+          });
+
+          const matchesHTML = Object.keys(byRound).length
+            ? Object.entries(byRound)
+                .map(
+                  ([round, ms]) => `
+          <div style="margin-bottom:20px">
+            <div style="padding:8px 16px;background:var(--bg-3);border-bottom:1px solid var(--border);font-family:var(--font-cond);font-size:12px;font-weight:700;color:var(--text-3);letter-spacing:0.8px;text-transform:uppercase">${round}</div>
+            ${ms
+              .map((m) => {
+                const isCompleted = m.status === "Completed";
+                const t1win = m.winner_name === m.t1_name;
+                const t2win = m.winner_name === m.t2_name;
+                return `
+              <div class="match-row" onclick="location.href='/match-detail.html?id=${
+                m.match_id
+              }'">
+                <span style="font-size:12px;color:var(--text-3)">${
+                  m.start_time?.slice(0, 5) || ""
+                }</span>
+                <div style="display:flex;align-items:center;gap:10px">
+                  ${
+                    m.t1_logo
+                      ? `<img style="width:18px;height:18px;object-fit:contain" src="${m.t1_logo}" onerror="this.style.display='none'" alt="">`
+                      : ""
+                  }
+                  <span style="font-family:var(--font-head);font-weight:700;font-size:14px;${
+                    isCompleted && !t1win ? "color:var(--text-3)" : ""
+                  }">${m.t1_name}</span>
+                  <span style="color:var(--text-3);font-size:12px">vs</span>
+                  ${
+                    m.t2_logo
+                      ? `<img style="width:18px;height:18px;object-fit:contain" src="${m.t2_logo}" onerror="this.style.display='none'" alt="">`
+                      : ""
+                  }
+                  <span style="font-family:var(--font-head);font-weight:700;font-size:14px;${
+                    isCompleted && !t2win ? "color:var(--text-3)" : ""
+                  }">${m.t2_name}</span>
+                </div>
+                <div style="font-family:var(--font-head);font-size:16px;font-weight:700">
+                  ${
+                    isCompleted
+                      ? `<span style="${
+                          t1win ? "color:var(--text-1)" : "color:var(--text-3)"
+                        }">${m.score_team1}</span>
+                       <span style="color:var(--text-3);font-size:12px;margin:0 3px">:</span>
+                       <span style="${
+                         t2win ? "color:var(--text-1)" : "color:var(--text-3)"
+                       }">${m.score_team2}</span>`
+                      : '<span style="color:var(--text-3)">—</span>'
+                  }
+                </div>
+                <span style="font-size:12px;color:var(--text-3)">${
+                  m.map_name || ""
+                } ${m.best_of ? "· BO" + m.best_of : ""}</span>
+                ${
+                  isCompleted
+                    ? `<span class="badge badge-done">Done</span>`
+                    : m.status === "Live"
+                    ? `<span class="badge badge-live">Live</span>`
+                    : `<span class="badge badge-upcoming">${Components.formatDate(
+                        m.date
+                      )}</span>`
+                }
+              </div>`;
+              })
+              .join("")}
+          </div>
+        `
+                )
+                .join("")
+            : Components.empty("No matches scheduled");
+
+          const teamsHTML = ev.teams?.length
+            ? `<div class="grid-4" style="gap:12px">${ev.teams
+                .map(
+                  (t) => `
+          <div style="background:var(--bg-3);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px;text-align:center;cursor:pointer;transition:border-color var(--trans)" onclick="location.href='/team-detail.html?id=${
+            t.team_id
+          }'" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">
+            ${
+              t.logo
+                ? `<img style="width:48px;height:48px;object-fit:contain;margin:0 auto 8px" src="${t.logo}" onerror="this.style.display='none'" alt="">`
+                : `<div style="width:48px;height:48px;background:var(--bg-4);border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--text-3);margin:0 auto 8px">${t.name[0]}</div>`
+            }
+            <div style="font-family:var(--font-head);font-size:13px;font-weight:700">${
+              t.name
+            }</div>
+            ${Components.regionBadge(t.region)}
+          </div>`
+                )
+                .join("")}
+        </div>`
+            : Components.empty("No teams registered");
+
+          const prizesHTML = ev.prizes?.length
+            ? `<div style="display:flex;flex-direction:column;gap:1px;background:var(--border);border-radius:var(--radius-lg);overflow:hidden">
+          ${ev.prizes
+            .map((pr) => {
+              const medals = ["🥇", "🥈", "🥉"];
+              return `<div style="display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--bg-3)">
+              <span style="font-family:var(--font-cond);font-size:16px;font-weight:700">${
+                medals[pr.position - 1] || ""
+              } ${
+                pr.position === 1
+                  ? "1st"
+                  : pr.position === 2
+                  ? "2nd"
+                  : pr.position === 3
+                  ? "3rd"
+                  : pr.position + "th"
+              } Place</span>
+              <span style="font-family:var(--font-head);font-size:20px;font-weight:700;color:var(--yellow)">${Components.formatPrize(
+                pr.amount
+              )}</span>
+            </div>`;
+            })
+            .join("")}
+        </div>`
+            : `<div class="empty">No prize data</div>`;
+
+          // Generate the bracket HTML natively using the matches array
+          const bracketHTML = getBracketHTML(ev.matches || [], ev.name);
+
+          document.getElementById("event-content").innerHTML = `
+      <div class="event-hero">
+        <div class="container">
+          <div class="event-hero-inner">
+            <div>
+              <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                ${statusBadge}
+                <span style="font-size:12px;color:var(--text-3)">${
+                  ev.type || ""
+                } · ${ev.format || ""}</span>
+              </div>
+              <div class="event-hero-name">${ev.name}</div>
+              <div class="event-hero-meta">
+                ${
+                  ev.location
+                    ? `<div class="event-meta-item"><div class="lbl">Location</div><div class="val">📍 ${ev.location}</div></div>`
+                    : ""
+                }
+                <div class="event-meta-item"><div class="lbl">Dates</div><div class="val">📅 ${Components.formatDate(
+                  ev.start_date
+                )}${
+            ev.end_date ? " – " + Components.formatDate(ev.end_date) : ""
+          }</div></div>
+                ${
+                  ev.organizer
+                    ? `<div class="event-meta-item"><div class="lbl">Organizer</div><div class="val">${ev.organizer}</div></div>`
+                    : ""
+                }
+                ${
+                  ev.number_of_teams
+                    ? `<div class="event-meta-item"><div class="lbl">Teams</div><div class="val">${
+                        ev.teams?.length || 0
+                      } / ${ev.number_of_teams}</div></div>`
+                    : ""
+                }
+              </div>
+            </div>
+            ${
+              ev.prize_pool
+                ? `<div style="text-align:center;flex-shrink:0">
+              <div class="event-prize">${Components.formatPrize(
+                ev.prize_pool
+              )}</div>
+              <div class="event-prize-label">Prize Pool</div>
+            </div>`
+                : ""
+            }
+          </div>
+        </div>
+      </div>
+
+      <div class="container" style="padding-top:24px">
+        <div class="filter-tabs" id="event-tabs">
+          <button class="filter-tab active" onclick="switchTab(this,'matches')">Matches</button>
+          <button class="filter-tab" onclick="switchTab(this,'bracket')">Bracket</button>
+          <button class="filter-tab" onclick="switchTab(this,'teams')">Teams (${
+            ev.teams?.length || 0
+          })</button>
+          <button class="filter-tab" onclick="switchTab(this,'prizes')">Prize Pool</button>
+        </div>
+        <div id="tab-matches"><div class="card">${matchesHTML}</div></div>
+        <div id="tab-bracket" style="display:none">${bracketHTML}</div>
+        <div id="tab-teams"   style="display:none">${teamsHTML}</div>
+        <div id="tab-prizes"  style="display:none">${prizesHTML}</div>
+      </div>
+    `;
+        } catch (e) {
+          document.getElementById("event-content").innerHTML =
+            Components.empty("Event not found");
+        }
+      }
+
+      function switchTab(btn, tab) {
+        document
+          .querySelectorAll("#event-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        
+        // Include "bracket" in the toggle loop
+        ["matches", "bracket", "teams", "prizes"].forEach((t) => {
+          document.getElementById("tab-" + t).style.display =
+            t === tab ? "" : "none";
+        });
+      }
+
+      loadEvent();
+    </script>
+</html>

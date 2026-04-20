@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Matches — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body data-page="Matches">
+    <div id="navbar-mount"></div>
+
+    <div class="page-banner">
+      <div class="container">
+        <div class="page-banner-inner">
+          <div>
+            <div class="page-title">Matches</div>
+            <div class="page-subtitle">
+              Scores, results and upcoming fixtures
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container layout-full">
+      <div
+        style="
+          display: flex;
+          gap: 16px;
+          align-items: center;
+          flex-wrap: wrap;
+          margin-bottom: 16px;
+        "
+      >
+        <div class="filter-tabs" style="margin: 0">
+          <button class="filter-tab active" onclick="switchTab(this,'all')">
+            All
+          </button>
+          <button class="filter-tab" onclick="switchTab(this,'ongoing')">
+            Live
+          </button>
+          <button class="filter-tab" onclick="switchTab(this,'upcoming')">
+            Upcoming
+          </button>
+          <button class="filter-tab" onclick="switchTab(this,'completed')">
+            Results
+          </button>
+        </div>
+        <select
+          id="tournamentFilter"
+          class="form-select"
+          style="width: 220px"
+          onchange="loadMatches()"
+        >
+          <option value="">All Tournaments</option>
+        </select>
+      </div>
+
+      <!-- Match list header -->
+      <div class="card">
+        <div
+          class="match-row"
+          style="
+            background: var(--bg-3);
+            font-family: var(--font-cond);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-3);
+            cursor: default;
+          "
+        >
+          <span>Date</span>
+          <span>Match</span>
+          <span>Score</span>
+          <span>Event</span>
+          <span>Status</span>
+        </div>
+        <div id="matches-list">
+          <div class="loading">
+            <div class="spinner"></div>
+            <span>Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      let currentFilter = "all";
+
+      async function switchTab(btn, status) {
+        document
+          .querySelectorAll(".filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        currentFilter = status;
+        await loadMatches();
+      }
+
+      async function loadTournaments() {
+        try {
+          const tournaments = await API.get("/tournaments");
+          const sel = document.getElementById("tournamentFilter");
+          tournaments.forEach((ev) => {
+            const opt = document.createElement("option");
+            opt.value = ev.tournament_id;
+            opt.textContent = ev.name;
+            sel.appendChild(opt);
+          });
+        } catch (e) {}
+      }
+
+      async function loadMatches() {
+        const list = document.getElementById("matches-list");
+        list.innerHTML = Components.loading();
+        try {
+          const tid = document.getElementById("tournamentFilter").value;
+          let url = "/matches?limit=100";
+          if (currentFilter !== "all") url += `&status=${currentFilter}`;
+          if (tid) url += `&tournament_id=${tid}`;
+          const matches = await API.get(url);
+          if (!matches.length) {
+            list.innerHTML = Components.empty("No matches found");
+            return;
+          }
+
+          // Group by date
+          const byDate = {};
+          matches.forEach((m) => {
+            const d = m.date?.split("T")[0] || m.date;
+            if (!byDate[d]) byDate[d] = [];
+            byDate[d].push(m);
+          });
+
+          list.innerHTML = Object.entries(byDate)
+            .map(([date, ms]) => {
+              const rows = ms
+                .map((m) => {
+                  const statusVal = String(m.status || "").toLowerCase().trim();
+                  const isCompleted = statusVal === "completed" || statusVal === "resolved";
+                  const t1win = m.w_id === m.t1_id;
+                  const t2win = m.w_id === m.t2_id;
+                  
+                  let statusBadge = "";
+                  if (statusVal === "ongoing" || statusVal === "live") {
+                      statusBadge = `<span class="badge badge-live">Live</span>`;
+                  } else if (statusVal === "upcoming") {
+                      statusBadge = `<span class="badge badge-upcoming">Upcoming</span>`;
+                  } else if (statusVal === "completed" || statusVal === "resolved") {
+                      statusBadge = `<span class="badge badge-done">Done</span>`;
+                  } else {
+                      // Diagnostic Badge: Shows EXACTLY what the database is returning if it doesn't match above
+                      statusBadge = `<span class="badge badge-done" style="background:#555;border-color:#777;">DB: ${m.status || "NULL"}</span>`;
+                  }
+
+                  return `
+        <div class="match-row" onclick="location.href='/match-detail.html?id=${m.match_id}'">
+          <span style="font-size:12px;color:var(--text-3)">${m.start_time?.slice(0, 5) || ""}</span>
+          <div style="display:flex;align-items:center;gap:12px;min-width:0">
+            <div style="display:flex;align-items:center;gap:6px;">
+              ${m.t1_logo ? `<img style="width:20px;height:20px;object-fit:contain" src="${m.t1_logo}" onerror="this.style.display='none'" alt="">` : ""}
+              <span style="font-family:var(--font-head);font-weight:700;font-size:14px;${isCompleted && !t1win ? "color:var(--text-3)" : ""}">${m.t1_name}</span>
+            </div>
+            <span style="color:var(--text-3);font-size:12px">vs</span>
+            <div style="display:flex;align-items:center;gap:6px;">
+              ${m.t2_logo ? `<img style="width:20px;height:20px;object-fit:contain" src="${m.t2_logo}" onerror="this.style.display='none'" alt="">` : ""}
+              <span style="font-family:var(--font-head);font-weight:700;font-size:14px;${isCompleted && !t2win ? "color:var(--text-3)" : ""}">${m.t2_name}</span>
+            </div>
+          </div>
+          <div style="font-family:var(--font-head);font-size:16px;font-weight:700">
+            ${isCompleted
+                ? `<span style="${t1win ? "color:var(--text-1)" : "color:var(--text-3)"}">${m.score_team1}</span>
+                 <span style="color:var(--text-3);font-size:13px;margin:0 4px">:</span>
+                 <span style="${t2win ? "color:var(--text-1)" : "color:var(--text-3)"}">${m.score_team2}</span>`
+                : '<span style="color:var(--text-3);font-size:13px">–</span>'
+            }
+          </div>
+          <div style="min-width:0">
+            <div style="font-size:12px;color:var(--accent);font-family:var(--font-cond);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${m.tournament_name}</div>
+            ${m.round ? `<div style="font-size:11px;color:var(--text-3)">${m.round} · BO${m.best_of}</div>` : ""}
+          </div>
+          ${statusBadge}
+        </div>`;
+                })
+                .join("");
+
+              return `
+        <div style="padding:8px 16px;background:var(--bg-3);border-bottom:1px solid var(--border);font-family:var(--font-cond);font-size:12px;font-weight:700;color:var(--text-3);letter-spacing:0.8px;text-transform:uppercase">
+          ${Components.formatDate(date)}
+        </div>
+        ${rows}`;
+            })
+            .join("");
+        } catch (e) {
+          list.innerHTML = Components.empty("Failed to load matches");
+        }
+      }
+
+      loadTournaments();
+      loadMatches();
+    </script>
+  </body>
+</html>

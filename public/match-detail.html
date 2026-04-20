@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Match — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      .match-hero {
+        background: linear-gradient(180deg, #180509 0%, var(--bg-2) 100%);
+        border-bottom: 1px solid var(--border);
+        padding: 20px 0 0;
+      }
+      .match-event-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+      .match-event-bar a {
+        font-family: var(--font-cond);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .match-event-bar .sep {
+        color: var(--text-3);
+      }
+      .match-event-bar .round-label {
+        font-family: var(--font-cond);
+        font-size: 13px;
+        color: var(--text-3);
+        font-weight: 600;
+      }
+
+      .match-teams-block {
+        display: grid;
+        grid-template-columns: 1fr 180px 1fr;
+        align-items: center;
+        gap: 0;
+        padding-bottom: 24px;
+      }
+      .match-team-side {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .match-team-side.right {
+        flex-direction: row-reverse;
+        text-align: right;
+      }
+      .match-team-logo {
+        width: 72px;
+        height: 72px;
+        object-fit: contain;
+        flex-shrink: 0;
+        filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+      }
+      .match-team-logo-ph {
+        width: 72px;
+        height: 72px;
+        border-radius: 10px;
+        background: var(--bg-4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-head);
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--text-3);
+        flex-shrink: 0;
+      }
+      .match-tname {
+        font-family: var(--font-head);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+      }
+      .match-tname.dim {
+        color: var(--text-3);
+      }
+      .match-center {
+        text-align: center;
+      }
+      .match-score-big {
+        font-family: var(--font-head);
+        font-size: 64px;
+        font-weight: 700;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .match-score-big .colon {
+        color: var(--text-3);
+        font-size: 40px;
+      }
+      .match-score-big .s-win {
+        color: var(--text-1);
+      }
+      .match-score-big .s-lose {
+        color: var(--text-3);
+      }
+      .match-final-label {
+        font-family: var(--font-cond);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text-3);
+        margin-bottom: 6px;
+      }
+      .match-winner-label {
+        font-family: var(--font-cond);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--green);
+        letter-spacing: 0.5px;
+        margin-top: 6px;
+      }
+
+      /* Nav tabs under hero */
+      .match-tabs {
+        display: flex;
+        border-top: 1px solid var(--border);
+      }
+      .match-tab {
+        padding: 12px 22px;
+        cursor: pointer;
+        font-family: var(--font-cond);
+        font-size: 13px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--text-3);
+        border-bottom: 2px solid transparent;
+        transition: all var(--trans);
+      }
+      .match-tab:hover {
+        color: var(--text-1);
+      }
+      .match-tab.on {
+        color: var(--accent);
+        border-bottom-color: var(--accent);
+      }
+
+      /* Map veto */
+      .veto-bar {
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 14px 18px;
+        font-size: 13px;
+        color: var(--text-2);
+        line-height: 1.7;
+        margin-bottom: 16px;
+      }
+      .veto-bar strong {
+        color: var(--text-1);
+      }
+
+      /* Map score cards */
+      .map-cards {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .map-card {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .map-card-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        background: var(--bg-3);
+        border-bottom: 1px solid var(--border);
+        font-family: var(--font-cond);
+        font-size: 12px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: var(--text-3);
+      }
+      .map-card-body {
+        display: grid;
+        grid-template-columns: 1fr 80px 1fr;
+        align-items: center;
+        gap: 0;
+        padding: 14px;
+      }
+      .map-team {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .map-team.right {
+        flex-direction: row-reverse;
+        text-align: right;
+      }
+      .map-team-name {
+        font-family: var(--font-head);
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .map-score-center {
+        text-align: center;
+      }
+      .map-score-center .ms {
+        font-family: var(--font-head);
+        font-size: 28px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .ms .w {
+        color: var(--text-1);
+      }
+      .ms .l {
+        color: var(--text-3);
+      }
+
+      /* Player roster grids */
+      .roster-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-bottom: 16px;
+      }
+      .roster-box {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+      }
+      .roster-box-head {
+        padding: 10px 14px;
+        background: var(--bg-3);
+        border-bottom: 1px solid var(--border);
+        font-family: var(--font-head);
+        font-size: 14px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .roster-box-head img {
+        width: 22px;
+        height: 22px;
+        object-fit: contain;
+      }
+      .roster-p-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background var(--trans);
+      }
+      .roster-p-row:last-child {
+        border-bottom: none;
+      }
+      .roster-p-row:hover {
+        background: var(--bg-3);
+      }
+
+      /* Streams */
+      .stream-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .stream-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 13px;
+        color: var(--text-1);
+        cursor: pointer;
+        transition: all var(--trans);
+        text-decoration: none;
+      }
+      .stream-btn:hover {
+        border-color: var(--accent);
+        color: var(--accent);
+        background: var(--accent-dim);
+      }
+      .stream-live {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--live);
+        animation: pulse 1.4s infinite;
+        flex-shrink: 0;
+      }
+
+      /* Match info table */
+      .info-table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+      .info-table td {
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+        vertical-align: middle;
+      }
+      .info-table tr:last-child td {
+        border-bottom: none;
+      }
+      .info-table .lbl {
+        color: var(--text-3);
+        width: 130px;
+      }
+      .info-table .val {
+        font-weight: 600;
+        font-family: var(--font-cond);
+        font-size: 14px;
+      }
+
+      /* Sidebar recent matches */
+      .sidebar-match {
+        padding: 10px 14px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background var(--trans);
+      }
+      .sidebar-match:hover {
+        background: var(--bg-3);
+      }
+      .sidebar-match:last-child {
+        border-bottom: none;
+      }
+      .sm-round {
+        font-size: 11px;
+        color: var(--text-3);
+        margin-bottom: 4px;
+        font-family: var(--font-cond);
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      .sm-teams {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .sm-team {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-family: var(--font-head);
+        font-size: 12px;
+        font-weight: 700;
+      }
+      .sm-score {
+        font-family: var(--font-head);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--text-3);
+      }
+
+      @media (max-width: 768px) {
+        .match-teams-block {
+          grid-template-columns: 1fr;
+          gap: 16px;
+        }
+        .roster-grid {
+          grid-template-columns: 1fr;
+        }
+        .stream-grid {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body data-page="Matches">
+    <div id="navbar-mount"></div>
+    <div id="root">
+      <div
+        style="
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          height: 60vh;
+          flex-direction: column;
+          gap: 16px;
+        "
+      >
+        <div class="spinner"></div>
+        <span style="color: var(--text-3)">Loading match...</span>
+      </div>
+    </div>
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      const matchId = new URLSearchParams(location.search).get("id");
+      if (!matchId) location.href = "/matches.html";
+
+      async function load() {
+        try {
+          const m = await API.get("/matches/" + matchId);
+          document.title = m.t1_name + " vs " + m.t2_name + " — Esports Hub";
+          render(m);
+        } catch (e) {
+          document.getElementById("root").innerHTML =
+            '<div style="text-align:center;padding:80px;color:var(--text-3)">Match not found</div>';
+        }
+      }
+
+      function teamLogo(logo, name, size = 72) {
+        if (logo)
+          return `<img class="match-team-logo" style="width:${size}px;height:${size}px" src="${logo}" alt="${name}" onerror="this.outerHTML='<div class=match-team-logo-ph style=width:${size}px;height:${size}px>${name[0]}</div>'">`;
+        return `<div class="match-team-logo-ph" style="width:${size}px;height:${size}px">${name[0]}</div>`;
+      }
+
+      async function render(m) {
+        const done = m.status === "Completed";
+        const live = m.status === "Live";
+        const t1win = m.winner_team_id === m.team1_id;
+        const t2win = m.winner_team_id === m.team2_id;
+        const t1pl = (m.players || []).filter((p) => p.team_id === m.team1_id);
+        const t2pl = (m.players || []).filter((p) => p.team_id === m.team2_id);
+        const stats = m.stats || [];
+
+        const statusBadge = live
+          ? `<span class="badge badge-live">Live</span>`
+          : !done
+          ? `<span class="badge badge-upcoming">${Components.formatDate(
+              m.date
+            )} ${(m.start_time || "").slice(0, 5)}</span>`
+          : `<span class="badge badge-done">Final</span>`;
+
+        /* ── Hero ──────────────────────────── */
+        const hero = `
+  <div class="match-hero">
+    <div class="container">
+      <div class="match-event-bar">
+        <a href="/event-detail.html?id=${m.tournament_id}">${
+          m.tournament_name
+        }</a>
+        ${
+          m.round
+            ? `<span class="sep">·</span><span class="round-label">${m.round}</span>`
+            : ""
+        }
+        <span class="sep">·</span>
+        ${statusBadge}
+        ${
+          m.best_of
+            ? `<span class="badge badge-done" style="margin-left:4px">BO${m.best_of}</span>`
+            : ""
+        }
+      </div>
+      <div class="match-teams-block">
+        <!-- T1 -->
+        <div class="match-team-side">
+          ${teamLogo(m.t1_logo, m.t1_name)}
+          <div>
+            <a href="/team-detail.html?id=${
+              m.team1_id
+            }" style="text-decoration:none">
+              <div class="match-tname ${done && !t1win ? "dim" : ""}">${
+          m.t1_name
+        }</div>
+            </a>
+            ${Components.regionBadge(m.t1_region)}
+          </div>
+        </div>
+        <!-- Score -->
+        <div class="match-center">
+          ${
+            done
+              ? `<div class="match-final-label">${live ? "LIVE" : "FINAL"}</div>
+               <div class="match-score-big">
+                 <span class="${t1win ? "s-win" : "s-lose"}">${
+                  m.score_team1
+                }</span>
+                 <span class="colon">:</span>
+                 <span class="${t2win ? "s-win" : "s-lose"}">${
+                  m.score_team2
+                }</span>
+               </div>
+               ${
+                 m.winner_name
+                   ? `<div class="match-winner-label">${m.winner_name} wins</div>`
+                   : ""
+               }`
+              : `<div class="match-score-big" style="font-size:32px;color:var(--text-3)">VS</div>
+               <div style="font-size:13px;color:var(--text-2);margin-top:4px">${Components.formatDate(
+                 m.date
+               )} ${(m.start_time || "").slice(0, 5)}</div>`
+          }
+          ${
+            m.map_name
+              ? `<div style="margin-top:8px"><span class="badge badge-done">🗺 ${m.map_name}</span></div>`
+              : ""
+          }
+        </div>
+        <!-- T2 -->
+        <div class="match-team-side right">
+          ${teamLogo(m.t2_logo, m.t2_name)}
+          <div>
+            <a href="/team-detail.html?id=${
+              m.team2_id
+            }" style="text-decoration:none">
+              <div class="match-tname ${done && !t2win ? "dim" : ""}">${
+          m.t2_name
+        }</div>
+            </a>
+            ${Components.regionBadge(m.t2_region)}
+          </div>
+        </div>
+      </div>
+      <div class="match-tabs" id="mtabs">
+        <div class="match-tab on"  onclick="swTab(this,'overview')">Overview</div>
+        <div class="match-tab"     onclick="swTab(this,'rosters')">Rosters</div>
+        ${
+          m.streams?.length || true
+            ? `<div class="match-tab" onclick="swTab(this,'streams')">Streams</div>`
+            : ""
+        }
+      </div>
+    </div>
+  </div>`;
+
+        /* ── Overview ──────────────────────── */
+        const mapVeto = m.map_name
+          ? `<div class="veto-bar"><strong>Map:</strong> ${m.map_name}${
+              m.best_of
+                ? ` &nbsp;·&nbsp; <strong>Format:</strong> BO${m.best_of}`
+                : ""
+            }</div>`
+          : m.best_of
+          ? `<div class="veto-bar"><strong>Format:</strong> BO${m.best_of}</div>`
+          : "";
+
+        // Load per-map scores asynchronously
+        let mapScoreHTML = "";
+        if (done) {
+          try {
+            const maps = await API.get(`/contentions/maps/match/${m.match_id}`);
+            if (maps && maps.length > 0) {
+              mapScoreHTML = `
+        <div class="map-cards">
+          ${maps
+            .map((mp, i) => {
+              const mp1w = mp.winner_team_id === m.team1_id;
+              const mp2w = mp.winner_team_id === m.team2_id;
+              return `
+            <div class="map-card">
+              <div class="map-card-head">
+                <span>Map ${mp.map_number}${
+                mp.map_name ? " — " + mp.map_name : ""
+              }</span>
+                <span style="color:${
+                  mp.winner_name ? "var(--text-2)" : "var(--text-3)"
+                }">${mp.winner_name ? mp.winner_name + " wins" : ""} ${
+                mp.duration_mins ? "· " + mp.duration_mins + "m" : ""
+              }</span>
+              </div>
+              <div class="map-card-body">
+                <div class="map-team">
+                  ${teamLogo(m.t1_logo, m.t1_name, 24)}
+                  <span class="map-team-name" style="${
+                    !mp1w ? "color:var(--text-3)" : ""
+                  }">${m.t1_name}</span>
+                </div>
+                <div class="map-score-center">
+                  <div class="ms">
+                    <span class="${mp1w ? "w" : "l"}">${mp.score_team1}</span>
+                    <span style="color:var(--text-3);font-size:16px">:</span>
+                    <span class="${mp2w ? "w" : "l"}">${mp.score_team2}</span>
+                  </div>
+                </div>
+                <div class="map-team right">
+                  ${teamLogo(m.t2_logo, m.t2_name, 24)}
+                  <span class="map-team-name" style="${
+                    !mp2w ? "color:var(--text-3)" : ""
+                  }">${m.t2_name}</span>
+                </div>
+              </div>
+            </div>`;
+            })
+            .join("")}
+        </div>`;
+            } else {
+              // Fallback: single series score card
+              mapScoreHTML = `
+        <div class="map-cards">
+          <div class="map-card">
+            <div class="map-card-head"><span>${
+              m.map_name || "Series"
+            }</span><span>${m.game_name || "Valorant"}</span></div>
+            <div class="map-card-body">
+              <div class="map-team">${teamLogo(
+                m.t1_logo,
+                m.t1_name,
+                24
+              )}<span class="map-team-name">${m.t1_name}</span></div>
+              <div class="map-score-center"><div class="ms"><span class="${
+                t1win ? "w" : "l"
+              }">${
+                m.score_team1
+              }</span><span style="color:var(--text-3);font-size:16px">:</span><span class="${
+                t2win ? "w" : "l"
+              }">${m.score_team2}</span></div></div>
+              <div class="map-team right">${teamLogo(
+                m.t2_logo,
+                m.t2_name,
+                24
+              )}<span class="map-team-name">${m.t2_name}</span></div>
+            </div>
+          </div>
+        </div>`;
+            }
+          } catch (e) {
+            mapScoreHTML = "";
+          }
+        }
+
+        const matchInfo = `
+  <table class="info-table">
+    ${[
+      ["Date", Components.formatDate(m.date)],
+      ["Time", (m.start_time || "").slice(0, 5) || "—"],
+      ["Duration", m.duration ? m.duration + " min" : "—"],
+      ["Format", m.best_of ? "Best of " + m.best_of : "—"],
+      ["Round", m.round || "—"],
+      ["Tournament", m.tournament_name],
+      ["Game", m.game_name || "Valorant"],
+    ]
+      .map(
+        ([l, v]) =>
+          `<tr><td class="lbl">${l}</td><td class="val">${v}</td></tr>`
+      )
+      .join("")}
+  </table>`;
+
+        const overview = `
+  <div id="tab-overview">
+    <div class="container" style="padding-top:20px">
+      <div class="layout">
+        <div>
+          ${mapVeto}
+          ${
+            done
+              ? mapScoreHTML
+              : `<div class="veto-bar" style="text-align:center;color:var(--text-3);padding:20px">Match has not started yet.</div>`
+          }
+          <div class="card" style="padding:20px;margin-top:16px">
+            <div class="section-header"><span class="section-title">Match Details</span></div>
+            ${matchInfo}
+          </div>
+        </div>
+        <!-- Sidebar -->
+        <aside>
+          <div class="sidebar-card">
+            <div class="sidebar-card-header">📋 Recent in ${
+              m.tournament_name?.split(":")[0] || "Event"
+            }</div>
+            <div id="sidebar-recent"><div class="loading" style="padding:16px"><div class="spinner"></div></div></div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>`;
+
+        /* ── Rosters ────────────────────────── */
+        const playerRow = (p) => `
+  <div class="roster-p-row" onclick="location.href='/player-detail.html?id=${
+    p.player_id
+  }'">
+    <div class="nav-avatar" style="width:32px;height:32px;font-size:12px;flex-shrink:0">${(p.username ||
+      p.name ||
+      "?")[0].toUpperCase()}</div>
+    <div style="flex:1;min-width:0">
+      <div style="font-family:var(--font-head);font-size:13px;font-weight:700">${
+        p.username || "—"
+      }</div>
+      <div style="font-size:11px;color:var(--text-3)">${p.name} · ${
+          p.country || "—"
+        }</div>
+    </div>
+    <span style="font-family:var(--font-cond);font-size:12px;font-weight:700;color:var(--accent)">${
+      p.rank || ""
+    }</span>
+  </div>`;
+
+        const rosters = `
+  <div id="tab-rosters" style="display:none">
+    <div class="container" style="padding-top:20px">
+      <div class="roster-grid">
+        <div class="roster-box">
+          <div class="roster-box-head">
+            ${
+              m.t1_logo
+                ? `<img src="${m.t1_logo}" onerror="this.style.display='none'" alt="">`
+                : ""
+            }
+            ${m.t1_name}
+          </div>
+          ${
+            t1pl.length
+              ? t1pl.map(playerRow).join("")
+              : '<div style="padding:20px;text-align:center;color:var(--text-3)">No player data</div>'
+          }
+        </div>
+        <div class="roster-box">
+          <div class="roster-box-head">
+            ${
+              m.t2_logo
+                ? `<img src="${m.t2_logo}" onerror="this.style.display='none'" alt="">`
+                : ""
+            }
+            ${m.t2_name}
+          </div>
+          ${
+            t2pl.length
+              ? t2pl.map(playerRow).join("")
+              : '<div style="padding:20px;text-align:center;color:var(--text-3)">No player data</div>'
+          }
+        </div>
+      </div>
+    </div>
+  </div>`;
+
+        // /* ── Streams ────────────────────────── */
+        // const defaultStreams = [
+        //   { name:'Valorant',        lang:'English', url:'https://twitch.tv/valorant' },
+        //   { name:'Valorant BR',     lang:'Portuguese', url:'https://twitch.tv/valorantbr' },
+        //   { name:'Valorant LATAM',  lang:'Spanish', url:'https://twitch.tv/valorantlatam' },
+        //   { name:'Valorant ES',     lang:'Spanish (Spain)', url:'https://twitch.tv/valorantes' },
+        //   { name:'YouTube VOD',     lang:'English', url:'https://youtube.com/@valorant' },
+        // ];
+
+        // const streams = `
+        // <div id="tab-streams" style="display:none">
+        //   <div class="container" style="padding-top:20px">
+        //     <div class="card" style="padding:20px">
+        //       <div class="section-header"><span class="section-title">Streams</span></div>
+        //       <div class="stream-grid">
+        //         ${defaultStreams.map(s=>`
+        //         <a href="${s.url}" target="_blank" class="stream-btn">
+        //           ${live?`<div class="stream-live"></div>`:'<span style="font-size:14px">📺</span>'}
+        //           <div>
+        //             <div style="font-weight:700;font-size:13px">${s.name}</div>
+        //             <div style="font-size:11px;color:var(--text-3)">${s.lang}</div>
+        //           </div>
+        //         </a>`).join('')}
+        //       </div>
+        //       ${done ? `
+        //       <div class="section-header" style="margin-top:20px"><span class="section-title">VODs</span></div>
+        //       <div class="stream-grid">
+        //         <a href="#" class="stream-btn"><span>🎬</span><div><div style="font-weight:700">Full Match</div><div style="font-size:11px;color:var(--text-3)">YouTube</div></div></a>
+        //         ${m.map_name?`<a href="#" class="stream-btn"><span>🗺</span><div><div style="font-weight:700">${m.map_name}</div><div style="font-size:11px;color:var(--text-3)">Map VOD</div></div></a>`:''}
+        //       </div>` : ''}
+        //     </div>
+        //   </div>
+        // </div>`;
+        /* ── Streams ────────────────────────── */
+        // 1. Check if match-specific streams exist
+        // 2. Fallback to Game Official YouTube channel if no match streams are found
+        let displayStreams = [];
+
+        if (m.streams && m.streams.length > 0) {
+          // Use links from Platform_Streaming
+          displayStreams = m.streams.map((s) => ({
+            name: s.platform_name,
+            lang: s.language,
+            url: s.link,
+          }));
+        } else if (m.official_youtube_url) {
+          // Fallback to official channel from Game table
+          displayStreams = [
+            {
+              name: `${m.game_name} Official`,
+              lang: "English",
+              url: m.official_youtube_url,
+            },
+          ];
+        }
+
+        const streams = `
+  <div id="tab-streams" style="display:none">
+    <div class="container" style="padding-top:20px">
+      <div class="card" style="padding:20px">
+        <div class="section-header"><span class="section-title">Streams</span></div>
+        <div class="stream-grid">
+          ${
+            displayStreams.length > 0
+              ? displayStreams
+                  .map(
+                    (s) => `
+              <a href="${s.url}" target="_blank" class="stream-btn">
+                ${
+                  live
+                    ? `<div class="stream-live"></div>`
+                    : '<span style="font-size:14px">📺</span>'
+                }
+                <div>
+                  <div style="font-weight:700;font-size:13px">${s.name}</div>
+                  <div style="font-size:11px;color:var(--text-3)">${
+                    s.lang
+                  }</div>
+                </div>
+              </a>`
+                  )
+                  .join("")
+              : '<div style="color:var(--text-3); font-size:13px;">No streams available for this match.</div>'
+          }
+        </div>
+        ${
+          done
+            ? `
+        <div class="section-header" style="margin-top:20px"><span class="section-title">VODs</span></div>
+        <div class="stream-grid">
+          <a href="${
+            m.official_youtube_url || "#"
+          }" target="_blank" class="stream-btn">
+            <span>🎬</span>
+            <div>
+              <div style="font-weight:700">Full Match VOD</div>
+              <div style="font-size:11px;color:var(--text-3)">YouTube</div>
+            </div>
+          </a>
+        </div>`
+            : ""
+        }
+      </div>
+    </div>
+  </div>`;
+
+        document.getElementById("root").innerHTML =
+          hero + overview + rosters + streams;
+
+        // Load sidebar matches
+        loadSidebarMatches(m.tournament_id, m.match_id);
+      }
+
+      async function loadSidebarMatches(tid, currentId) {
+        try {
+          const all = await API.get(
+            "/matches?tournament_id=" + tid + "&limit=10"
+          );
+          const el = document.getElementById("sidebar-recent");
+          if (!el) return;
+          const others = all.filter((x) => x.match_id != currentId);
+          if (!others.length) {
+            el.innerHTML =
+              '<div style="padding:16px;color:var(--text-3);font-size:12px">No other matches</div>';
+            return;
+          }
+          el.innerHTML = others
+            .slice(0, 8)
+            .map((m) => {
+              const done = m.status === "Completed";
+              return `
+      <div class="sidebar-match" onclick="location.href='/match-detail.html?id=${
+        m.match_id
+      }'">
+        <div class="sm-round">${m.round || m.status} · ${Components.formatDate(
+                m.date
+              )}</div>
+        <div class="sm-teams">
+          <div class="sm-team">
+            ${
+              m.t1_logo
+                ? `<img style="width:16px;height:16px;object-fit:contain" src="${m.t1_logo}" onerror="this.style.display='none'" alt="">`
+                : ""
+            }
+            ${m.t1_name}
+          </div>
+          <span class="sm-score">${
+            done ? m.score_team1 + ":" + m.score_team2 : "vs"
+          }</span>
+          <div class="sm-team" style="flex-direction:row-reverse">
+            ${
+              m.t2_logo
+                ? `<img style="width:16px;height:16px;object-fit:contain" src="${m.t2_logo}" onerror="this.style.display='none'" alt="">`
+                : ""
+            }
+            ${m.t2_name}
+          </div>
+        </div>
+      </div>`;
+            })
+            .join("");
+        } catch (e) {}
+      }
+
+      function swTab(btn, id) {
+        document
+          .querySelectorAll("#mtabs .match-tab")
+          .forEach((t) => t.classList.remove("on"));
+        document
+          .querySelectorAll('[id^="tab-"]')
+          .forEach((p) => (p.style.display = "none"));
+        btn.classList.add("on");
+        const el = document.getElementById("tab-" + id);
+        if (el) el.style.display = "";
+      }
+
+      load();
+    </script>
+  </body>
+</html>

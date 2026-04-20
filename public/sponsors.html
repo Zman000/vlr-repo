@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Sponsors & Organizations — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      .sponsor-card {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 20px;
+        transition: border-color var(--trans), transform var(--trans);
+        cursor: pointer;
+      }
+      .sponsor-card:hover {
+        border-color: var(--accent);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 24px rgba(255, 70, 85, 0.12);
+      }
+      /* sponsors.html - Update these styles  */
+      .sponsor-logo-box {
+        width: 56px;
+        height: 56px;
+        border-radius: var(--radius-lg);
+        background: var(--bg-4);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-head);
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--accent);
+        margin-bottom: 12px;
+        overflow: hidden; /* Ensures images don't spill out  */
+      }
+      .sponsor-logo-box img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Keeps logo proportions  */
+        padding: 4px; /* Optional: adds a bit of breathing room for the logo  */
+      }
+      .sponsor-name {
+        font-family: var(--font-head);
+        font-size: 18px;
+        font-weight: 700;
+      }
+      .sponsor-industry {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 3px;
+        background: var(--accent-dim);
+        border: 1px solid rgba(255, 70, 85, 0.25);
+        font-family: var(--font-cond);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--accent);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 4px;
+      }
+      .sponsor-inv {
+        font-family: var(--font-head);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--yellow);
+        margin-top: 10px;
+      }
+      .sponsor-deals {
+        font-size: 12px;
+        color: var(--text-3);
+        margin-top: 4px;
+      }
+
+      .org-card {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 18px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        cursor: pointer;
+        transition: border-color var(--trans);
+      }
+      .org-card:hover {
+        border-color: var(--border-2);
+      }
+      .org-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: var(--bg-4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-head);
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--text-2);
+        flex-shrink: 0;
+      }
+      .org-name {
+        font-family: var(--font-head);
+        font-size: 15px;
+        font-weight: 700;
+      }
+      .org-count {
+        font-size: 12px;
+        color: var(--text-3);
+        margin-top: 2px;
+      }
+
+      .coach-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border);
+        cursor: pointer;
+        transition: background var(--trans);
+      }
+      .coach-row:hover {
+        background: var(--bg-3);
+      }
+      .coach-row:last-child {
+        border-bottom: none;
+      }
+      .coach-avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: var(--bg-4);
+        border: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-head);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--text-3);
+        flex-shrink: 0;
+      }
+
+      /* modal */
+      .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        z-index: 500;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
+      .modal-overlay.open {
+        display: flex;
+      }
+      .modal-box {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        max-width: 560px;
+        width: 100%;
+        max-height: 80vh;
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+        position: relative;
+      }
+      .modal-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: none;
+        border: none;
+        color: var(--text-3);
+        font-size: 20px;
+        cursor: pointer;
+        line-height: 1;
+      }
+      .modal-close:hover {
+        color: var(--text-1);
+      }
+
+      .deal-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px 0;
+        border-bottom: 1px solid var(--border);
+      }
+      .deal-row:last-child {
+        border-bottom: none;
+      }
+      .entity-type-chip {
+        padding: 2px 8px;
+        border-radius: 3px;
+        font-family: var(--font-cond);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+      }
+      .et-team {
+        background: rgba(96, 165, 250, 0.12);
+        color: #60a5fa;
+      }
+      .et-tournament {
+        background: rgba(251, 191, 36, 0.12);
+        color: var(--yellow);
+      }
+      .et-player {
+        background: rgba(167, 139, 250, 0.12);
+        color: #a78bfa;
+      }
+    </style>
+  </head>
+  <body data-page="Sponsors">
+    <div id="navbar-mount"></div>
+
+    <div class="page-banner">
+      <div class="container">
+        <div class="page-title">Sponsors & Organizations</div>
+        <div class="page-subtitle">
+          Sponsors, funding organizations and coaching staff
+        </div>
+      </div>
+    </div>
+
+    <div class="container layout-full">
+      <!-- Section tabs -->
+      <div class="filter-tabs" id="section-tabs" style="margin-bottom: 20px">
+        <button
+          class="filter-tab active"
+          onclick="showSection(this,'sponsors')"
+        >
+          Sponsors
+        </button>
+        <button class="filter-tab" onclick="showSection(this,'orgs')">
+          Organizations
+        </button>
+        <button class="filter-tab" onclick="showSection(this,'coaches')">
+          Coaches
+        </button>
+      </div>
+
+      <!-- ── Sponsors ──────────────────────────── -->
+      <div id="sec-sponsors">
+        <div class="section-header">
+          <span class="section-title">💰 Tournament & Team Sponsors</span>
+          <span
+            id="sponsor-count"
+            style="font-size: 12px; color: var(--text-3)"
+          ></span>
+        </div>
+        <div id="sponsors-grid" class="grid-4">
+          <div class="loading" style="grid-column: 1/-1">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Organizations ─────────────────────── -->
+      <div id="sec-orgs" style="display: none">
+        <div class="section-header">
+          <span class="section-title">🏢 Esports Organizations</span>
+          <span
+            id="org-count"
+            style="font-size: 12px; color: var(--text-3)"
+          ></span>
+        </div>
+        <div id="orgs-grid" class="grid-3">
+          <div class="loading" style="grid-column: 1/-1">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Coaches ───────────────────────────── -->
+      <div id="sec-coaches" style="display: none">
+        <div class="section-header">
+          <span class="section-title">🎯 Coaches</span>
+        </div>
+        <div class="card" id="coaches-list">
+          <div class="loading" style="padding: 24px">
+            <div class="spinner"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sponsor Detail Modal -->
+    <div class="modal-overlay" id="sponsor-modal">
+      <div class="modal-box">
+        <button class="modal-close" onclick="closeModal()">×</button>
+        <div id="modal-body"></div>
+      </div>
+    </div>
+
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      function showSection(btn, sec) {
+        document
+          .querySelectorAll("#section-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        ["sponsors", "orgs", "coaches"].forEach(
+          (s) =>
+            (document.getElementById("sec-" + s).style.display =
+              s === sec ? "" : "none")
+        );
+      }
+
+      // ── Sponsors ──────────────────────────────────────
+      async function loadSponsors() {
+        try {
+          const sponsors = await API.get("/sponsors");
+          document.getElementById("sponsor-count").textContent =
+            sponsors.length + " sponsors";
+          const grid = document.getElementById("sponsors-grid");
+          if (!sponsors.length) {
+            grid.innerHTML = Components.empty("No sponsors found");
+            return;
+          }
+          grid.innerHTML = sponsors
+            .map(
+              (s) => `
+    <div class="sponsor-card" onclick="openSponsor(${s.sponsor_id})">
+      <div class="sponsor-logo-box">
+        ${
+          s.logo
+            ? `<img src="${s.logo}" 
+     alt="${s.name}" 
+     onerror="this.parentElement.innerHTML='${s.name[0].toUpperCase()}'">`
+            : s.name[0].toUpperCase()
+        }
+      </div>
+      <div class="sponsor-name">${s.name}</div>
+      ${s.industry ? `<div class="sponsor-industry">${s.industry}</div>` : ""}
+      <div class="sponsor-inv">${Components.formatPrize(
+        s.total_investment
+      )}</div>
+      <div class="sponsor-deals">${s.entity_count || 0} sponsorship deal${
+                s.entity_count !== 1 ? "s" : ""
+              }</div>
+      ${
+        s.contact_email
+          ? `<div style="font-size:11px;color:var(--text-3);margin-top:6px">✉ ${s.contact_email}</div>`
+          : ""
+      }
+    </div>`
+            )
+            .join("");
+        } catch (e) {
+          document.getElementById("sponsors-grid").innerHTML =
+            Components.empty("Failed to load");
+        }
+      }
+
+      async function openSponsor(id) {
+        document.getElementById("sponsor-modal").classList.add("open");
+        document.getElementById("modal-body").innerHTML = Components.loading();
+        try {
+          const s = await API.get("/sponsors/" + id);
+          document.getElementById("modal-body").innerHTML = `
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px">
+      <div class="sponsor-logo-box" style="margin:0">
+      ${
+        s.logo
+          ? `<img src="${s.logo}" 
+     alt="${s.name}" 
+     onerror="this.parentElement.innerHTML='${s.name[0].toUpperCase()}'">`
+          : s.name[0].toUpperCase()
+      }
+    </div>
+      <div>
+        <div style="font-family:var(--font-head);font-size:22px;font-weight:700">${
+          s.name
+        }</div>
+        ${s.industry ? `<div class="sponsor-industry">${s.industry}</div>` : ""}
+      </div>
+      <div style="margin-left:auto;text-align:right">
+        <div style="font-family:var(--font-head);font-size:24px;font-weight:700;color:var(--yellow)">${Components.formatPrize(
+          s.total_investment
+        )}</div>
+        <div style="font-size:11px;color:var(--text-3)">Total Investment</div>
+      </div>
+    </div>
+    <div style="font-family:var(--font-cond);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:10px">Sponsorship Deals (${
+      s.deals?.length || 0
+    })</div>
+    ${
+      s.deals?.length
+        ? s.deals
+            .map(
+              (d) => `
+    <div class="deal-row">
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="entity-type-chip et-${d.entity_type}">${
+                d.entity_type
+              }</span>
+        <span style="font-family:var(--font-head);font-size:14px;font-weight:700">${
+          d.entity_name || "—"
+        }</span>
+      </div>
+      <div style="text-align:right">
+        <div style="font-family:var(--font-cond);font-size:16px;font-weight:700;color:var(--yellow)">${Components.formatPrize(
+          d.amount
+        )}</div>
+        <div style="font-size:11px;color:var(--text-3)">${Components.formatDate(
+          d.contract_start
+        )} – ${
+                d.contract_end
+                  ? Components.formatDate(d.contract_end)
+                  : "Ongoing"
+              }</div>
+      </div>
+    </div>`
+            )
+            .join("")
+        : '<div style="color:var(--text-3);font-size:13px">No active deals</div>'
+    }`;
+        } catch (e) {
+          document.getElementById("modal-body").innerHTML = Components.empty(
+            "Failed to load sponsor"
+          );
+        }
+      }
+      function closeModal() {
+        document.getElementById("sponsor-modal").classList.remove("open");
+      }
+      document
+        .getElementById("sponsor-modal")
+        .addEventListener("click", (e) => {
+          if (e.target === e.currentTarget) closeModal();
+        });
+
+      // ── Organizations ─────────────────────────────────
+      async function loadOrgs() {
+        try {
+          const orgs = await API.get("/sponsors/orgs/list");
+          document.getElementById("org-count").textContent =
+            orgs.length + " orgs";
+          const grid = document.getElementById("orgs-grid");
+          if (!orgs.length) {
+            grid.innerHTML = Components.empty("No organizations");
+            return;
+          }
+          grid.innerHTML = orgs
+            .map(
+              (o) => `
+    <div class="org-card">
+      <div class="org-icon">${o.name[0].toUpperCase()}</div>
+      <div style="flex:1;min-width:0">
+        <div class="org-name">${o.name}</div>
+        <div class="org-count">${o.team_count} team${
+                o.team_count !== 1 ? "s" : ""
+              }</div>
+      </div>
+    </div>`
+            )
+            .join("");
+        } catch (e) {
+          document.getElementById("orgs-grid").innerHTML =
+            Components.empty("Failed to load");
+        }
+      }
+
+      // ── Coaches ───────────────────────────────────────
+      async function loadCoaches() {
+        try {
+          const coaches = await API.get("/sponsors/coaches/list");
+          const list = document.getElementById("coaches-list");
+          if (!coaches.length) {
+            list.innerHTML = Components.empty("No coaches");
+            return;
+          }
+
+          list.innerHTML = `
+    <div style="display:grid;grid-template-columns:36px 1fr 1fr 1fr;align-items:center;gap:10px;padding:10px 16px;background:var(--bg-3);font-family:var(--font-cond);font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3)">
+      <span>#</span><span>Coach</span><span>Team</span><span>Region</span>
+    </div>
+    ${coaches
+      .map(
+        (c, i) => `
+    <div style="display:grid;grid-template-columns:36px 1fr 1fr 1fr;align-items:center;gap:10px;padding:11px 16px;border-bottom:1px solid var(--border);transition:background var(--trans)"
+         onmouseover="this.style.background='var(--bg-3)'" onmouseout="this.style.background=''">
+      <span style="font-family:var(--font-cond);font-size:14px;font-weight:700;color:var(--text-3)">${
+        i + 1
+      }</span>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="coach-avatar">${c.name[0].toUpperCase()}</div>
+        <span style="font-family:var(--font-head);font-size:14px;font-weight:700">${
+          c.name
+        }</span>
+      </div>
+      ${
+        c.team_name
+          ? `<a href="/team-detail.html?id=${
+              c.team_id
+            }" style="display:flex;align-items:center;gap:6px">
+            ${
+              c.team_logo
+                ? `<img style="width:18px;height:18px;object-fit:contain" src="${c.team_logo}" onerror="this.style.display='none'" alt="">`
+                : ""
+            }
+            <span style="font-size:13px;color:var(--accent);font-weight:600">${
+              c.team_name
+            }</span>
+          </a>`
+          : '<span style="font-size:13px;color:var(--text-3)">Unassigned</span>'
+      }
+      <div>${Components.regionBadge(c.region)}</div>
+    </div>`
+      )
+      .join("")}`;
+        } catch (e) {
+          document.getElementById("coaches-list").innerHTML =
+            Components.empty("Failed to load");
+        }
+      }
+
+      loadSponsors();
+      loadOrgs();
+      loadCoaches();
+    </script>
+  </body>
+</html>

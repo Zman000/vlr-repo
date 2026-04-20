@@ -1,0 +1,4112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Admin Panel — Esports Hub</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      /* ── Admin Layout ──────────────────────────────── */
+      .admin-wrap {
+        display: grid;
+        grid-template-columns: 220px 1fr;
+        min-height: calc(100vh - var(--nav-h));
+      }
+      .admin-sidebar {
+        background: var(--bg-2);
+        border-right: 1px solid var(--border);
+        padding: 20px 0;
+        position: sticky;
+        top: var(--nav-h);
+        height: calc(100vh - var(--nav-h));
+        overflow-y: auto;
+      }
+      .admin-sidebar-title {
+        font-family: var(--font-cond);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: var(--text-3);
+        padding: 8px 18px;
+        margin-top: 8px;
+      }
+      .admin-nav-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 18px;
+        cursor: pointer;
+        font-family: var(--font-body);
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--text-2);
+        border-left: 2px solid transparent;
+        transition: all var(--trans);
+      }
+      .admin-nav-item:hover {
+        background: var(--bg-3);
+        color: var(--text-1);
+      }
+      .admin-nav-item.active {
+        background: var(--accent-dim);
+        color: var(--accent);
+        border-left-color: var(--accent);
+      }
+      .admin-nav-item svg {
+        flex-shrink: 0;
+      }
+
+      .admin-main {
+        padding: 28px 32px;
+      }
+
+      /* ── Panel Sections ────────────────────────────── */
+      .admin-section {
+        display: none;
+      }
+      .admin-section.active {
+        display: block;
+      }
+
+      .admin-section-title {
+        font-family: var(--font-head);
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+      }
+      .admin-section-sub {
+        font-size: 13px;
+        color: var(--text-2);
+        margin-bottom: 24px;
+      }
+
+      /* ── Form Grid ─────────────────────────────────── */
+      .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .form-grid-3 {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 16px;
+      }
+      .col-span-2 {
+        grid-column: 1 / -1;
+      }
+      @media (max-width: 700px) {
+        .form-grid,
+        .form-grid-3 {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* ── Custom Select (searchable) ────────────────── */
+      .select-wrap {
+        position: relative;
+      }
+      .select-wrap .clear-btn {
+        position: absolute;
+        right: 10px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: none;
+        border: none;
+        color: var(--text-3);
+        cursor: pointer;
+        font-size: 16px;
+        line-height: 1;
+        display: none;
+        padding: 0 2px;
+      }
+      .select-wrap.has-val .clear-btn {
+        display: block;
+      }
+
+      .searchable-select {
+        position: relative;
+      }
+      .searchable-select input.ss-input {
+        width: 100%;
+        padding: 10px 36px 10px 14px;
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--text-1);
+        font-family: var(--font-body);
+        font-size: 14px;
+        outline: none;
+        cursor: pointer;
+        transition: border-color var(--trans);
+      }
+      .searchable-select input.ss-input:focus {
+        border-color: var(--accent);
+        cursor: text;
+      }
+      .searchable-select input.ss-input::placeholder {
+        color: var(--text-3);
+      }
+      .ss-dropdown {
+        position: absolute;
+        top: calc(100% + 4px);
+        left: 0;
+        right: 0;
+        z-index: 300;
+        background: var(--bg-3);
+        border: 1px solid var(--border-2);
+        border-radius: var(--radius-lg);
+        max-height: 220px;
+        overflow-y: auto;
+        box-shadow: var(--shadow-lg);
+        display: none;
+      }
+      .ss-dropdown.open {
+        display: block;
+      }
+      .ss-option {
+        padding: 9px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background var(--trans);
+      }
+      .ss-option:hover,
+      .ss-option.highlighted {
+        background: var(--bg-4);
+      }
+      .ss-option.selected {
+        color: var(--accent);
+      }
+      .ss-option-badge {
+        font-size: 10px;
+        color: var(--text-3);
+        font-family: var(--font-cond);
+        margin-left: auto;
+      }
+      .ss-empty {
+        padding: 12px 14px;
+        font-size: 13px;
+        color: var(--text-3);
+        text-align: center;
+      }
+
+      /* "Add new" option in dropdown */
+      .ss-add-new {
+        padding: 9px 14px;
+        font-size: 13px;
+        cursor: pointer;
+        color: var(--accent);
+        border-top: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-weight: 600;
+        font-family: var(--font-cond);
+        letter-spacing: 0.3px;
+      }
+      .ss-add-new:hover {
+        background: var(--accent-dim);
+      }
+
+      /* ── Multi-Select (players) ────────────────────── */
+      .multi-select-tags {
+        min-height: 44px;
+        padding: 6px 10px;
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        cursor: text;
+        transition: border-color var(--trans);
+      }
+      .multi-select-tags:focus-within {
+        border-color: var(--accent);
+      }
+      .ms-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--accent-dim);
+        border: 1px solid rgba(255, 70, 85, 0.25);
+        color: var(--accent);
+        border-radius: 3px;
+        padding: 2px 8px;
+        font-size: 12px;
+        font-weight: 600;
+        font-family: var(--font-cond);
+      }
+      .ms-tag-remove {
+        cursor: pointer;
+        font-size: 14px;
+        line-height: 1;
+      }
+      .multi-select-tags input {
+        border: none;
+        background: none;
+        outline: none;
+        font-family: var(--font-body);
+        font-size: 13px;
+        color: var(--text-1);
+        flex: 1;
+        min-width: 120px;
+        padding: 2px 4px;
+      }
+      .multi-select-tags input::placeholder {
+        color: var(--text-3);
+      }
+
+      /* ── Bracket Tree ──────────────────────────────── */
+      .bracket-section {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+      }
+      .bracket-container {
+        overflow-x: auto;
+        padding: 16px 0;
+      }
+      .bracket {
+        display: flex;
+        gap: 0;
+        align-items: flex-start;
+        min-width: max-content;
+      }
+      .bracket-round {
+        display: flex;
+        flex-direction: column;
+        min-width: 200px;
+      }
+      .bracket-round-label {
+        font-family: var(--font-cond);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text-3);
+        text-align: center;
+        padding: 0 8px 12px;
+      }
+      .bracket-matches {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+      }
+      .bracket-pair {
+        display: flex;
+        flex-direction: column;
+        align-items: stretch;
+        position: relative;
+        padding: 12px 8px;
+      }
+      /* Connector lines */
+      .bracket-pair::after {
+        content: "";
+        position: absolute;
+        right: 0;
+        top: 50%;
+        width: 8px;
+        height: 1px;
+        background: var(--border-2);
+      }
+      .bracket-round:last-child .bracket-pair::after {
+        display: none;
+      }
+
+      .bracket-match {
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        width: 190px;
+        cursor: default;
+      }
+      .bracket-match.clickable {
+        cursor: pointer;
+      }
+      .bracket-match.clickable:hover {
+        border-color: var(--accent);
+      }
+      .bracket-match-team {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 7px 10px;
+        gap: 8px;
+        border-bottom: 1px solid var(--border);
+        font-size: 12px;
+      }
+      .bracket-match-team:last-child {
+        border-bottom: none;
+      }
+      .bracket-match-team.winner {
+        background: rgba(74, 222, 128, 0.06);
+      }
+      .bracket-match-team.loser {
+        color: var(--text-3);
+      }
+      .bracket-team-name {
+        font-family: var(--font-head);
+        font-size: 12px;
+        font-weight: 700;
+        flex: 1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .bracket-score {
+        font-family: var(--font-cond);
+        font-size: 14px;
+        font-weight: 700;
+        min-width: 16px;
+        text-align: right;
+      }
+      .bracket-score.win {
+        color: var(--green);
+      }
+      .bracket-score.lose {
+        color: var(--text-3);
+      }
+      .bracket-empty {
+        color: var(--text-3);
+        font-size: 11px;
+        font-style: italic;
+      }
+
+      /* ── Step indicator ────────────────────────────── */
+      .step-indicator {
+        display: flex;
+        gap: 0;
+        margin-bottom: 24px;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        border: 1px solid var(--border);
+      }
+      .step {
+        flex: 1;
+        padding: 10px 14px;
+        text-align: center;
+        font-family: var(--font-cond);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        background: var(--bg-3);
+        color: var(--text-3);
+        border-right: 1px solid var(--border);
+        transition: all var(--trans);
+      }
+      .step:last-child {
+        border-right: none;
+      }
+      .step.done {
+        background: rgba(74, 222, 128, 0.08);
+        color: var(--green);
+      }
+      .step.current {
+        background: var(--accent-dim);
+        color: var(--accent);
+      }
+      .step-num {
+        font-size: 16px;
+        font-weight: 700;
+        display: block;
+      }
+
+      /* ── Toast override position ───────────────────── */
+      .toast {
+        bottom: 32px;
+        right: 32px;
+      }
+
+      /* ── Summary card ──────────────────────────────── */
+      .summary-card {
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-lg);
+        padding: 16px 20px;
+        margin-bottom: 16px;
+      }
+      .summary-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 6px 0;
+        border-bottom: 1px solid var(--border);
+        font-size: 13px;
+      }
+      .summary-row:last-child {
+        border-bottom: none;
+      }
+      .summary-row .lbl {
+        color: var(--text-3);
+      }
+      .summary-row .val {
+        font-weight: 600;
+        font-family: var(--font-cond);
+      }
+
+      /* ── Section divider ───────────────────────────── */
+      .field-divider {
+        height: 1px;
+        background: var(--border);
+        margin: 20px 0;
+        grid-column: 1/-1;
+      }
+
+      /* map name chips ── */
+      .map-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+      }
+      .map-chip {
+        padding: 4px 12px;
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        background: var(--bg-4);
+        font-size: 12px;
+        cursor: pointer;
+        color: var(--text-2);
+        transition: all var(--trans);
+        font-family: var(--font-cond);
+        font-weight: 600;
+      }
+      .map-chip:hover {
+        border-color: var(--border-2);
+        color: var(--text-1);
+      }
+      .map-chip.active {
+        background: var(--accent-dim);
+        border-color: rgba(255, 70, 85, 0.4);
+        color: var(--accent);
+      }
+      .filer-btn {
+        padding: 7px 14px;
+        border-radius: var(--radius);
+        font-family: var(--font-cond);
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        background: var(--bg-3);
+        color: var(--text-2);
+        transition: all var(--trans);
+      }
+      .filer-btn:hover {
+        border-color: var(--border-2);
+        color: var(--text-1);
+      }
+      .filer-btn.active {
+        background: var(--accent-dim);
+        border-color: rgba(255, 70, 85, 0.4);
+        color: var(--accent);
+      }
+    </style>
+  </head>
+  <body data-page="">
+    <div id="navbar-mount"></div>
+
+    <div class="admin-wrap">
+      <!-- ── Sidebar ──────────────────────────────────── -->
+      <aside class="admin-sidebar">
+        <div class="admin-sidebar-title">Overview</div>
+        <div
+          class="admin-nav-item active"
+          onclick="showSection('dashboard')"
+          id="nav-dashboard"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="3" width="7" height="7" />
+            <rect x="14" y="3" width="7" height="7" />
+            <rect x="3" y="14" width="7" height="7" />
+            <rect x="14" y="14" width="7" height="7" />
+          </svg>
+          Dashboard
+        </div>
+
+        <div class="admin-sidebar-title" style="margin-top: 16px">Add New</div>
+        <div
+          class="admin-nav-item"
+          onclick="showSection('add-tournament')"
+          id="nav-add-tournament"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M8 21h8m-4-4v4M5 3h14l-1 7H6L5 3z" />
+            <path d="M12 14a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+          </svg>
+          Add Tournament
+        </div>
+        <div
+          class="admin-nav-item"
+          onclick="showSection('add-match')"
+          id="nav-add-match"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <path d="M12 8v4l3 3" />
+          </svg>
+          Add Match
+        </div>
+        <div
+          class="admin-nav-item"
+          onclick="showSection('add-team')"
+          id="nav-add-team"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Add Team
+        </div>
+        <div
+          class="admin-nav-item"
+          onclick="showSection('add-player')"
+          id="nav-add-player"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          Add Player
+        </div>
+
+        <div class="admin-sidebar-title" style="margin-top: 16px">Brackets</div>
+        <div
+          class="admin-nav-item"
+          onclick="showSection('bracket')"
+          id="nav-bracket"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M3 3h7v7H3z" />
+            <path d="M14 3h7v7h-7z" />
+            <path d="M3 14h7v7H3z" />
+            <path d="M17 17.5h4M17 20.5h4M10 4.5H3.5V10" />
+            <path d="M17 6.5h3.5" />
+          </svg>
+          View Brackets
+        </div>
+
+        <div class="admin-sidebar-title" style="margin-top: 16px">
+          Moderation
+        </div>
+        <div
+          class="admin-nav-item"
+          onclick="showSection('contentions')"
+          id="nav-contentions"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          Contentions &amp; Bans
+        </div>
+        <div
+          class="admin-nav-item"
+          onclick="showSection('approvals')"
+          id="nav-approvals"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          Player Approvals
+          <span
+            id="approvals-badge"
+            style="
+              display: none;
+              margin-left: auto;
+              background: var(--accent);
+              color: #fff;
+              padding: 1px 6px;
+              border-radius: 10px;
+              font-size: 10px;
+              font-weight: 700;
+              font-family: var(--font-cond);
+            "
+          ></span>
+        </div>
+        <div
+          class="admin-nav-item"
+          onclick="showSection('sponsors-admin')"
+          id="nav-sponsors-admin"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M12 2L2 7l10 5 10-5-10-5z" />
+            <path d="M2 17l10 5 10-5" />
+            <path d="M2 12l10 5 10-5" />
+          </svg>
+          Sponsors &amp; Orgs
+        </div>
+
+        <div class="admin-sidebar-title" style="margin-top: 16px">
+          Database
+        </div>
+        <div
+          class="admin-nav-item"
+          onclick="showSection('database-editor')"
+          id="nav-database-editor"
+        >
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <ellipse cx="12" cy="5" rx="9" ry="3" />
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+          </svg>
+          Database Editor
+        </div>
+
+        <div style="padding: 16px 18px; margin-top: auto">
+          <a
+            href="/index.html"
+            class="btn btn-ghost btn-sm"
+            style="width: 100%; justify-content: center"
+            >← Back to Site</a
+          >
+        </div>
+      </aside>
+
+      <!-- ── Main Content ─────────────────────────────── -->
+      <main class="admin-main">
+        <!-- ══ Dashboard ══════════════════════════════════ -->
+        <section id="section-dashboard" class="admin-section active">
+          <div class="admin-section-title">Admin Dashboard</div>
+          <div class="admin-section-sub">
+            Manage tournaments, matches, teams and players.
+          </div>
+          <div class="grid-4" id="dash-stats" style="margin-bottom: 28px">
+            <div class="loading" style="grid-column: 1/-1">
+              <div class="spinner"></div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="card">
+              <div class="card-header">
+                <span class="section-title">Recent Matches</span>
+              </div>
+              <div id="dash-matches">
+                <div class="loading" style="padding: 24px">
+                  <div class="spinner"></div>
+                </div>
+              </div>
+            </div>
+            <div class="card">
+              <div class="card-header">
+                <span class="section-title">Active Tournaments</span>
+              </div>
+              <div id="dash-events">
+                <div class="loading" style="padding: 24px">
+                  <div class="spinner"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══ Add Tournament ══════════════════════════════ -->
+        <section id="section-add-tournament" class="admin-section">
+          <div class="admin-section-title">Add Tournament</div>
+          <div class="admin-section-sub">
+            Create a new esports event or championship.
+          </div>
+
+          <div class="card" style="padding: 28px">
+            <div class="form-error" id="t-error"></div>
+            <div class="form-success" id="t-success"></div>
+
+            <div class="form-grid">
+              <div class="form-group col-span-2">
+                <label class="form-label">Tournament Name *</label>
+                <input
+                  class="form-input"
+                  id="t-name"
+                  placeholder="e.g. VCT 2025: Masters Madrid"
+                  maxlength="100"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Game *</label>
+                <div class="searchable-select" id="ss-t-game">
+                  <input
+                    class="ss-input"
+                    placeholder="Select game..."
+                    readonly
+                  />
+                  <input type="hidden" id="t-game_id" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <div class="searchable-select" id="ss-t-status">
+                  <input
+                    class="ss-input"
+                    placeholder="Select status..."
+                    readonly
+                  />
+                  <input type="hidden" id="t-status_id" value="3" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Start Date *</label>
+                <input class="form-input" type="date" id="t-start_date" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">End Date</label>
+                <input class="form-input" type="date" id="t-end_date" />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Type</label>
+                <select class="form-select" id="t-type">
+                  <option value="">Select type</option>
+                  <option value="Regional">Regional</option>
+                  <option value="Global">Global</option>
+                  <option value="Qualifier">Qualifier</option>
+                  <option value="Invitational">Invitational</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Format</label>
+                <select class="form-select" id="t-format">
+                  <option value="">Select format</option>
+                  <option value="Single Elimination">Single Elimination</option>
+                  <option value="Double Elimination">Double Elimination</option>
+                  <option value="Round Robin">Round Robin</option>
+                  <option value="Swiss">Swiss</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Prize Pool ($)</label>
+                <input
+                  class="form-input"
+                  type="number"
+                  id="t-prize"
+                  placeholder="e.g. 500000"
+                  min="0"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Number of Teams</label>
+                <input
+                  class="form-input"
+                  type="number"
+                  id="t-numteams"
+                  placeholder="e.g. 16"
+                  min="2"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Location</label>
+                <input
+                  class="form-input"
+                  id="t-location"
+                  placeholder="e.g. São Paulo, Brazil"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Organizer</label>
+                <input
+                  class="form-input"
+                  id="t-organizer"
+                  placeholder="e.g. Riot Games"
+                />
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 24px">
+              <button class="btn btn-primary" onclick="submitTournament()">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <path d="M12 5v14M5 12l7 7 7-7" />
+                </svg>
+                Create Tournament
+              </button>
+              <button class="btn btn-ghost" onclick="resetForm('tournament')">
+                Reset
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══ Add Match ═══════════════════════════════════ -->
+        <section id="section-add-match" class="admin-section">
+          <div class="admin-section-title">Add Match</div>
+          <div class="admin-section-sub">
+            Schedule a match between two teams inside a tournament.
+          </div>
+
+          <div class="card" style="padding: 28px">
+            <div class="form-error" id="m-error"></div>
+            <div class="form-success" id="m-success"></div>
+
+            <!-- Step 1: Event + Teams -->
+            <div style="margin-bottom: 20px">
+              <div
+                style="
+                  font-family: var(--font-cond);
+                  font-size: 13px;
+                  font-weight: 700;
+                  color: var(--text-2);
+                  text-transform: uppercase;
+                  letter-spacing: 0.8px;
+                  margin-bottom: 14px;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                "
+              >
+                <span
+                  style="
+                    background: var(--accent);
+                    color: #fff;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 11px;
+                  "
+                  >1</span
+                >
+                Tournament & Teams
+              </div>
+              <div class="form-grid">
+                <div class="form-group col-span-2">
+                  <label class="form-label">Tournament *</label>
+                  <div class="searchable-select" id="ss-m-tournament">
+                    <input
+                      class="ss-input"
+                      placeholder="Search and select tournament..."
+                    />
+                    <input type="hidden" id="m-tournament_id" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Team 1 *</label>
+                  <div class="searchable-select" id="ss-m-team1">
+                    <input class="ss-input" placeholder="Search team..." />
+                    <input type="hidden" id="m-team1_id" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Team 2 *</label>
+                  <div class="searchable-select" id="ss-m-team2">
+                    <input class="ss-input" placeholder="Search team..." />
+                    <input type="hidden" id="m-team2_id" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Game *</label>
+                  <div class="searchable-select" id="ss-m-game">
+                    <input
+                      class="ss-input"
+                      placeholder="Select game..."
+                      readonly
+                    />
+                    <input type="hidden" id="m-game_id" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Round</label>
+                  <select class="form-select" id="m-round">
+                    <option value="">Select round</option>
+                    <option>Group Stage</option>
+                    <option>Quarterfinal</option>
+                    <option>Semifinal</option>
+                    <option>Grand Final</option>
+                    <option>Upper Bracket</option>
+                    <option>Lower Bracket</option>
+                    <option>Upper Final</option>
+                    <option>Lower Final</option>
+                    <option>Playoffs</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Schedule + Map -->
+            <div
+              style="
+                border-top: 1px solid var(--border);
+                padding-top: 20px;
+                margin-bottom: 20px;
+              "
+            >
+              <div
+                style="
+                  font-family: var(--font-cond);
+                  font-size: 13px;
+                  font-weight: 700;
+                  color: var(--text-2);
+                  text-transform: uppercase;
+                  letter-spacing: 0.8px;
+                  margin-bottom: 14px;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                "
+              >
+                <span
+                  style="
+                    background: var(--accent);
+                    color: #fff;
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 11px;
+                  "
+                  >2</span
+                >
+                Schedule & Format
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Date *</label>
+                  <input class="form-input" type="date" id="m-date" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Start Time *</label>
+                  <input class="form-input" type="time" id="m-start_time" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Best Of</label>
+                  <select class="form-select" id="m-best_of">
+                    <option value="1">BO1</option>
+                    <option value="3" selected>BO3</option>
+                    <option value="5">BO5</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Status</label>
+                  <div class="searchable-select" id="ss-m-status">
+                    <input
+                      class="ss-input"
+                      placeholder="Select status..."
+                      readonly
+                    />
+                    <input type="hidden" id="m-status_id" value="3" />
+                  </div>
+                </div>
+              </div>
+              <div class="form-group" style="margin-top: 4px">
+                <label class="form-label">Map</label>
+                <div class="map-chips" id="map-chips">
+                  <div class="map-chip" onclick="selectMap(this,'Ascent')">
+                    Ascent
+                  </div>
+                  <div class="map-chip" onclick="selectMap(this,'Haven')">
+                    Haven
+                  </div>
+                  <div class="map-chip" onclick="selectMap(this,'Bind')">
+                    Bind
+                  </div>
+                  <div class="map-chip" onclick="selectMap(this,'Lotus')">
+                    Lotus
+                  </div>
+                  <div class="map-chip" onclick="selectMap(this,'Pearl')">
+                    Pearl
+                  </div>
+                  <div class="map-chip" onclick="selectMap(this,'Sunset')">
+                    Sunset
+                  </div>
+                  <div class="map-chip" onclick="selectMap(this,'Icebox')">
+                    Icebox
+                  </div>
+                  <div class="map-chip" onclick="selectMap(this,'Fracture')">
+                    Fracture
+                  </div>
+                  <div class="map-chip" onclick="selectMap(this,'Abyss')">
+                    Abyss
+                  </div>
+                  <div class="map-chip" onclick="selectMap(this,'Split')">
+                    Split
+                  </div>
+                </div>
+                <input type="hidden" id="m-map_name" />
+              </div>
+            </div>
+
+            <!-- Step 3: Result (optional) -->
+            <div
+              style="
+                border-top: 1px solid var(--border);
+                padding-top: 20px;
+                margin-bottom: 20px;
+              "
+            >
+              <div
+                style="
+                  font-family: var(--font-cond);
+                  font-size: 13px;
+                  font-weight: 700;
+                  color: var(--text-2);
+                  text-transform: uppercase;
+                  letter-spacing: 0.8px;
+                  margin-bottom: 14px;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                "
+              >
+                <span
+                  style="
+                    background: var(--bg-4);
+                    color: var(--text-3);
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 11px;
+                  "
+                  >3</span
+                >
+                Result
+                <span
+                  style="
+                    font-size: 11px;
+                    color: var(--text-3);
+                    font-weight: 400;
+                    text-transform: none;
+                    letter-spacing: 0;
+                  "
+                  >(optional — fill for completed matches)</span
+                >
+              </div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label" id="m-score1-label"
+                    >Score Team 1</label
+                  >
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="m-score_team1"
+                    value="0"
+                    min="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" id="m-score2-label"
+                    >Score Team 2</label
+                  >
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="m-score_team2"
+                    value="0"
+                    min="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Winner</label>
+                  <div class="searchable-select" id="ss-m-winner">
+                    <input
+                      class="ss-input"
+                      placeholder="Select winner (if completed)..."
+                      readonly
+                    />
+                    <input type="hidden" id="m-winner_team_id" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Duration (minutes)</label>
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="m-duration"
+                    placeholder="e.g. 75"
+                    min="1"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4: Players -->
+            <div
+              style="
+                border-top: 1px solid var(--border);
+                padding-top: 20px;
+                margin-bottom: 20px;
+              "
+            >
+              <div
+                style="
+                  font-family: var(--font-cond);
+                  font-size: 13px;
+                  font-weight: 700;
+                  color: var(--text-2);
+                  text-transform: uppercase;
+                  letter-spacing: 0.8px;
+                  margin-bottom: 14px;
+                  display: flex;
+                  align-items: center;
+                  gap: 8px;
+                "
+              >
+                <span
+                  style="
+                    background: var(--bg-4);
+                    color: var(--text-3);
+                    width: 20px;
+                    height: 20px;
+                    border-radius: 50%;
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 11px;
+                  "
+                  >4</span
+                >
+                Players
+                <span
+                  style="
+                    font-size: 11px;
+                    color: var(--text-3);
+                    font-weight: 400;
+                    text-transform: none;
+                    letter-spacing: 0;
+                  "
+                  >(optional)</span
+                >
+              </div>
+              <div class="form-group">
+                <label class="form-label">Add players to this match</label>
+                <div
+                  class="multi-select-tags"
+                  id="ms-players"
+                  onclick="document.getElementById('ms-player-input').focus()"
+                >
+                  <input
+                    type="text"
+                    id="ms-player-input"
+                    placeholder="Type player name or IGN to search..."
+                    oninput="searchPlayers(this.value)"
+                    onkeydown="msKeydown(event)"
+                  />
+                </div>
+                <div
+                  id="ms-player-dropdown"
+                  class="ss-dropdown"
+                  style="position: relative; top: 0; margin-top: 4px"
+                ></div>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 8px">
+              <button class="btn btn-primary" onclick="submitMatch()">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <path d="M12 5v14M5 12l7 7 7-7" />
+                </svg>
+                Create Match
+              </button>
+              <button class="btn btn-ghost" onclick="resetForm('match')">
+                Reset
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══ Add Team ═════════════════════════════════════ -->
+        <section id="section-add-team" class="admin-section">
+          <div class="admin-section-title">Add Team</div>
+          <div class="admin-section-sub">Register a new esports team.</div>
+
+          <div class="card" style="padding: 28px">
+            <div class="form-error" id="team-error"></div>
+            <div class="form-success" id="team-success"></div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Team Name *</label>
+                <input
+                  class="form-input"
+                  id="team-name"
+                  placeholder="e.g. Team Vitality"
+                  maxlength="100"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Region</label>
+                <select class="form-select" id="team-region">
+                  <option value="">Select region</option>
+                  <option value="NA">NA — North America</option>
+                  <option value="EU">EU — Europe</option>
+                  <option value="SA">SA — South America</option>
+                  <option value="APAC">APAC — Asia-Pacific</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Organization</label>
+                <div class="searchable-select" id="ss-team-org">
+                  <input
+                    class="ss-input"
+                    placeholder="Search or type new org..."
+                  />
+                  <input type="hidden" id="team-org_id" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Coach</label>
+                <div class="searchable-select" id="ss-team-coach">
+                  <input
+                    class="ss-input"
+                    placeholder="Search or type new coach..."
+                  />
+                  <input type="hidden" id="team-coach_id" />
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Founded Date *</label>
+                <input class="form-input" type="date" id="team-founded" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <div class="searchable-select" id="ss-team-status">
+                  <input
+                    class="ss-input"
+                    placeholder="Select status..."
+                    readonly
+                  />
+                  <input type="hidden" id="team-status_id" value="1" />
+                </div>
+              </div>
+
+              <div class="form-group col-span-2">
+                <label class="form-label">Logo URL</label>
+                <input
+                  class="form-input"
+                  id="team-logo"
+                  placeholder="https://cdn.example.com/team-logo.png"
+                />
+              </div>
+            </div>
+
+            <!-- Logo preview -->
+            <div id="logo-preview" style="display: none; margin-top: 8px">
+              <label class="form-label">Preview</label>
+              <img
+                id="logo-img"
+                style="
+                  width: 64px;
+                  height: 64px;
+                  object-fit: contain;
+                  background: var(--bg-4);
+                  border-radius: 8px;
+                  padding: 4px;
+                "
+              />
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 24px">
+              <button class="btn btn-primary" onclick="submitTeam()">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <path d="M12 5v14M5 12l7 7 7-7" />
+                </svg>
+                Create Team
+              </button>
+              <button class="btn btn-ghost" onclick="resetForm('team')">
+                Reset
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══ Add Player ═══════════════════════════════════ -->
+        <section id="section-add-player" class="admin-section">
+          <div class="admin-section-title">Add Player</div>
+          <div class="admin-section-sub">
+            Register a new professional player.
+          </div>
+
+          <div class="card" style="padding: 28px">
+            <div class="form-error" id="p-error"></div>
+            <div class="form-success" id="p-success"></div>
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Full Name *</label>
+                <input
+                  class="form-input"
+                  id="p-name"
+                  placeholder="e.g. Tyson Ngo"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">IGN / Username</label>
+                <input
+                  class="form-input"
+                  id="p-username"
+                  placeholder="e.g. TenZ"
+                />
+              </div>
+
+              <div class="form-group col-span-2">
+                <label class="form-label">Email *</label>
+                <input
+                  class="form-input"
+                  type="email"
+                  id="p-email"
+                  placeholder="player@team.gg"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Country</label>
+                <input
+                  class="form-input"
+                  id="p-country"
+                  placeholder="e.g. Canada"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Region</label>
+                <select class="form-select" id="p-region">
+                  <option value="">Select region</option>
+                  <option value="NA">NA</option>
+                  <option value="EU">EU</option>
+                  <option value="SA">SA</option>
+                  <option value="APAC">APAC</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Age</label>
+                <input
+                  class="form-input"
+                  type="number"
+                  id="p-age"
+                  placeholder="e.g. 22"
+                  min="13"
+                  max="50"
+                />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Rank</label>
+                <select class="form-select" id="p-rank">
+                  <option value="">Select rank</option>
+                  <option value="Radiant">Radiant</option>
+                  <option value="Immortal 3">Immortal 3</option>
+                  <option value="Immortal 2">Immortal 2</option>
+                  <option value="Immortal 1">Immortal 1</option>
+                  <option value="Ascendant 3">Ascendant 3</option>
+                  <option value="Diamond 3">Diamond 3</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Assign to Team</label>
+                <div class="searchable-select" id="ss-p-team">
+                  <input
+                    class="ss-input"
+                    placeholder="Search team (optional)..."
+                  />
+                  <input type="hidden" id="p-team_id" />
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Status</label>
+                <div class="searchable-select" id="ss-p-status">
+                  <input
+                    class="ss-input"
+                    placeholder="Select status..."
+                    readonly
+                  />
+                  <input type="hidden" id="p-status_id" value="1" />
+                </div>
+              </div>
+
+              <div class="form-group col-span-2">
+                <label class="form-label">Bio</label>
+                <textarea
+                  class="form-input"
+                  id="p-bio"
+                  rows="3"
+                  placeholder="Short player biography..."
+                  style="resize: vertical"
+                ></textarea>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 12px; margin-top: 24px">
+              <button class="btn btn-primary" onclick="submitPlayer()">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                >
+                  <path d="M12 5v14M5 12l7 7 7-7" />
+                </svg>
+                Create Player
+              </button>
+              <button class="btn btn-ghost" onclick="resetForm('player')">
+                Reset
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══ Bracket View ══════════════════════════════════ -->
+        <section id="section-bracket" class="admin-section">
+          <div class="admin-section-title">Tournament Bracket</div>
+          <div class="admin-section-sub">
+            Visualize match brackets as a binary tree by tournament.
+          </div>
+
+          <div
+            style="
+              display: flex;
+              gap: 12px;
+              align-items: flex-end;
+              margin-bottom: 20px;
+              flex-wrap: wrap;
+            "
+          >
+            <div
+              class="form-group"
+              style="flex: 1; min-width: 240px; margin: 0"
+            >
+              <label class="form-label">Select Tournament</label>
+              <div class="searchable-select" id="ss-bracket-tournament">
+                <input class="ss-input" placeholder="Search tournament..." />
+                <input type="hidden" id="bracket-tournament_id" />
+              </div>
+            </div>
+            <button class="btn btn-primary" onclick="loadBracket()">
+              Load Bracket
+            </button>
+          </div>
+
+          <div id="bracket-container">
+            <div class="empty">
+              <div class="empty-icon">🎮</div>
+              <p>Select a tournament to view its bracket</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══ Contentions & Bans ══════════════════════════ -->
+        <section id="section-contentions" class="admin-section">
+          <div class="admin-section-title">Contentions &amp; Bans</div>
+          <div class="admin-section-sub">
+            Review filed contentions, issue bans, and manage appeals.
+          </div>
+
+          <div class="filter-tabs" id="ct-tabs" style="margin-bottom: 16px">
+            <button class="filter-tab active" onclick="ctTab(this,'open')">
+              Open (Pending)
+            </button>
+            <button class="filter-tab" onclick="ctTab(this,'all')">
+              All Contentions
+            </button>
+            <button class="filter-tab" onclick="ctTab(this,'bans')">
+              Active Bans
+            </button>
+            <button class="filter-tab" onclick="ctTab(this,'appeals')">
+              Appeals
+            </button>
+          </div>
+
+          <div id="ct-panel">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </section>
+
+        <!-- ══ Player Approvals ════════════════════════════ -->
+        <section id="section-approvals" class="admin-section">
+          <div class="admin-section-title">Player Approvals</div>
+          <div class="admin-section-sub">
+            Review pending player registrations and approve or reject per game.
+          </div>
+
+          <div class="filter-tabs" id="ap-tabs" style="margin-bottom: 16px">
+            <button class="filter-tab active" onclick="apTab(this,'pending')">
+              Pending
+            </button>
+            <button class="filter-tab" onclick="apTab(this,'all')">
+              All Registrations
+            </button>
+          </div>
+          <div id="ap-panel">
+            <div class="loading"><div class="spinner"></div></div>
+          </div>
+        </section>
+
+        <!-- ══ Sponsors & Orgs ═══════════════════════════════ -->
+        <section id="section-sponsors-admin" class="admin-section">
+          <div class="admin-section-title">Sponsors &amp; Organizations</div>
+          <div class="admin-section-sub">
+            Add sponsors, assign sponsorship deals, and manage orgs.
+          </div>
+
+          <div class="filter-tabs" id="sp-tabs" style="margin-bottom: 20px">
+            <button class="filter-tab active" onclick="spTab(this,'list')">
+              Sponsor List
+            </button>
+            <button class="filter-tab" onclick="spTab(this,'add-sponsor')">
+              Add Sponsor
+            </button>
+            <button class="filter-tab" onclick="spTab(this,'add-deal')">
+              Add Deal
+            </button>
+          </div>
+
+          <!-- List -->
+          <div id="sp-list">
+            <div class="card" id="sp-list-inner">
+              <div class="loading" style="padding: 24px">
+                <div class="spinner"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Sponsor -->
+          <div id="sp-add-sponsor" style="display: none">
+            <div class="card" style="padding: 28px">
+              <div class="form-error" id="sp-error"></div>
+              <div class="form-success" id="sp-success"></div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Sponsor Name *</label
+                  ><input
+                    class="form-input"
+                    id="sp-name"
+                    placeholder="e.g. Monster Energy"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Industry</label
+                  ><input
+                    class="form-input"
+                    id="sp-industry"
+                    placeholder="e.g. Energy Drinks"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Contact Email</label
+                  ><input
+                    class="form-input"
+                    type="email"
+                    id="sp-email"
+                    placeholder="esports@sponsor.com"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Initial Investment ($)</label
+                  ><input
+                    class="form-input"
+                    type="number"
+                    id="sp-investment"
+                    placeholder="0"
+                    min="0"
+                  />
+                </div>
+              </div>
+              <button
+                class="btn btn-primary"
+                style="margin-top: 16px"
+                onclick="addSponsor()"
+              >
+                Add Sponsor
+              </button>
+            </div>
+          </div>
+
+          <!-- Add Deal -->
+          <div id="sp-add-deal" style="display: none">
+            <div class="card" style="padding: 28px">
+              <div class="form-error" id="deal-error"></div>
+              <div class="form-success" id="deal-success"></div>
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label">Sponsor *</label>
+                  <div class="searchable-select" id="ss-deal-sponsor">
+                    <input
+                      class="ss-input"
+                      placeholder="Select sponsor..."
+                    /><input type="hidden" id="deal-sponsor_id" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Entity Type *</label>
+                  <select
+                    class="form-select"
+                    id="deal-entity-type"
+                    onchange="updateDealEntity()"
+                  >
+                    <option value="">Select type</option>
+                    <option value="team">Team</option>
+                    <option value="tournament">Tournament</option>
+                    <option value="player">Player</option>
+                  </select>
+                </div>
+                <div class="form-group" id="deal-entity-wrap">
+                  <label class="form-label">Entity *</label>
+                  <div class="searchable-select" id="ss-deal-entity">
+                    <input
+                      class="ss-input"
+                      placeholder="Select entity..."
+                    /><input type="hidden" id="deal-entity_id" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Amount ($) *</label>
+                  <input
+                    class="form-input"
+                    type="number"
+                    id="deal-amount"
+                    placeholder="e.g. 500000"
+                    min="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Contract Start *</label>
+                  <input class="form-input" type="date" id="deal-start" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Contract End</label>
+                  <input class="form-input" type="date" id="deal-end" />
+                </div>
+              </div>
+              <button
+                class="btn btn-primary"
+                style="margin-top: 16px"
+                onclick="addDeal()"
+              >
+                Create Deal
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- ══ Database Editor ═══════════════════════════════ -->
+        <section id="section-database-editor" class="admin-section">
+          <div class="admin-section-title">Database Editor</div>
+          <div class="admin-section-sub">
+            View and edit database tables directly.
+          </div>
+
+          <div class="filter-tabs" id="db-tabs" style="margin-bottom: 20px">
+            <button class="filter-tab active" onclick="dbTab(this,'tables')">
+              Tables
+            </button>
+            <button class="filter-tab" onclick="dbTab(this,'query')">
+              SQL Query
+            </button>
+          </div>
+
+          <!-- Tables List -->
+          <div id="db-tables">
+            <div class="card" id="db-tables-inner">
+              <div class="loading" style="padding: 24px">
+                <div class="spinner"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- SQL Query -->
+          <div id="db-query" style="display: none">
+            <div class="card" style="padding: 28px">
+              <div class="form-error" id="query-error"></div>
+              <div class="form-success" id="query-success"></div>
+              <div class="form-group">
+                <label class="form-label">SQL Query</label>
+                <textarea
+                  class="form-input"
+                  id="sql-query"
+                  placeholder="SELECT * FROM table_name LIMIT 10;"
+                  rows="6"
+                ></textarea>
+              </div>
+              <button
+                class="btn btn-primary"
+                style="margin-top: 16px"
+                onclick="executeQuery()"
+              >
+                Execute Query
+              </button>
+              <div id="query-results" style="margin-top: 20px"></div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="footer-mount"></div>
+    <script src="/js/api.js"></script>
+    <script>
+      // ── Guard: admin only ─────────────────────────────
+      document.addEventListener("DOMContentLoaded", () => {
+        const user = API.getUser();
+        if (!user) {
+          location.href = "/login.html";
+          return;
+        }
+        if (user.role !== "Admin") {
+          showToast("Admin access required", "error");
+          setTimeout(() => (location.href = "/"), 1500);
+          return;
+        }
+        init();
+      });
+
+      // ── State ─────────────────────────────────────────
+      let DD = {}; // dropdown data cache
+      let selectedPlayers = []; // for multi-select
+
+      // ── Init ──────────────────────────────────────────
+      async function init() {
+        await loadDropdownData();
+        initAllSelects();
+        loadDashboard();
+        // Load approval badge
+        API.get("/admin/pending-players")
+          .then((p) => {
+            const count = p.filter(
+              (x) => x.approval_status === "pending"
+            ).length;
+            const b = document.getElementById("approvals-badge");
+            if (count > 0) {
+              b.textContent = count;
+              b.style.display = "";
+            }
+          })
+          .catch(() => {});
+        // Preview logo on input
+        document
+          .getElementById("team-logo")
+          .addEventListener("input", function () {
+            const preview = document.getElementById("logo-preview");
+            const img = document.getElementById("logo-img");
+            if (this.value) {
+              img.src = this.value;
+              preview.style.display = "";
+            } else {
+              preview.style.display = "none";
+            }
+          });
+        // Update score labels when teams selected
+        document
+          .getElementById("m-team1_id")
+          .addEventListener("change", updateScoreLabels);
+        document
+          .getElementById("m-team2_id")
+          .addEventListener("change", updateScoreLabels);
+      }
+
+      function updateScoreLabels() {
+        const t1 = document
+          .getElementById("ss-m-team1")
+          .querySelector(".ss-input").value;
+        const t2 = document
+          .getElementById("ss-m-team2")
+          .querySelector(".ss-input").value;
+        if (t1)
+          document.getElementById(
+            "m-score1-label"
+          ).textContent = `Score — ${t1}`;
+        if (t2)
+          document.getElementById(
+            "m-score2-label"
+          ).textContent = `Score — ${t2}`;
+      }
+
+      // ── Load dropdown data from API ───────────────────
+      async function loadDropdownData() {
+        try {
+          DD = await API.get("/admin/dropdown-data");
+        } catch (e) {
+          showToast(
+            "Failed to load form data. Make sure you are logged in as Admin.",
+            "error"
+          );
+        }
+      }
+
+      // ── Section switching ─────────────────────────────
+      function showSection(id) {
+        document
+          .querySelectorAll(".admin-section")
+          .forEach((s) => s.classList.remove("active"));
+        document
+          .querySelectorAll(".admin-nav-item")
+          .forEach((n) => n.classList.remove("active"));
+        document.getElementById("section-" + id).classList.add("active");
+        document.getElementById("nav-" + id).classList.add("active");
+      }
+
+      // ── Map chip selector ─────────────────────────────
+      function selectMap(el, name) {
+        document
+          .querySelectorAll(".map-chip")
+          .forEach((c) => c.classList.remove("active"));
+        el.classList.add("active");
+        document.getElementById("m-map_name").value = name;
+      }
+
+      // ══════════════════════════════════════════════════
+      //  SEARCHABLE SELECT COMPONENT
+      // ══════════════════════════════════════════════════
+      function initSearchableSelect(
+        containerId,
+        options,
+        hiddenInputId,
+        opts = {}
+      ) {
+        // options: [{value, label, badge}]
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const input = container.querySelector(".ss-input");
+        const hidden = document.getElementById(hiddenInputId);
+        let dropdown = container.querySelector(".ss-dropdown");
+        if (!dropdown) {
+          dropdown = document.createElement("div");
+          dropdown.className = "ss-dropdown";
+          container.appendChild(dropdown);
+        }
+        container.style.position = "relative";
+
+        let allOptions = [...options];
+        let highlighted = -1;
+
+        function render(list, query = "") {
+          const filtered = list.filter((o) =>
+            o.label.toLowerCase().includes(query.toLowerCase())
+          );
+          if (!filtered.length && !opts.allowNew) {
+            dropdown.innerHTML = `<div class="ss-empty">No results found</div>`;
+          } else {
+            dropdown.innerHTML = filtered
+              .slice(0, 60)
+              .map(
+                (o, i) => `
+        <div class="ss-option ${hidden.value == o.value ? "selected" : ""}"
+             data-value="${o.value}" data-label="${o.label}">
+          ${o.label}
+          ${o.badge ? `<span class="ss-option-badge">${o.badge}</span>` : ""}
+        </div>`
+              )
+              .join("");
+            if (
+              opts.allowNew &&
+              query &&
+              !filtered.find(
+                (o) => o.label.toLowerCase() === query.toLowerCase()
+              )
+            ) {
+              dropdown.innerHTML += `<div class="ss-add-new" data-new="${query}">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
+          Add "${query}"
+        </div>`;
+            }
+          }
+
+          // Click handlers
+          dropdown.querySelectorAll(".ss-option").forEach((el) => {
+            el.addEventListener("mousedown", (e) => {
+              e.preventDefault();
+              selectOption(el.dataset.value, el.dataset.label);
+            });
+          });
+          const addNew = dropdown.querySelector(".ss-add-new");
+          if (addNew) {
+            addNew.addEventListener("mousedown", async (e) => {
+              e.preventDefault();
+              const name = addNew.dataset.new;
+              await handleAddNew(
+                opts.addNewType,
+                name,
+                containerId,
+                hiddenInputId,
+                allOptions
+              );
+            });
+          }
+        }
+
+        function selectOption(value, label) {
+          hidden.value = value;
+          input.value = label;
+          dropdown.classList.remove("open");
+          hidden.dispatchEvent(new Event("change"));
+          if (opts.onSelect) opts.onSelect(value, label);
+          // Update winner dropdown if team changes
+          if (containerId === "ss-m-team1" || containerId === "ss-m-team2")
+            updateWinnerDropdown();
+        }
+
+        input.addEventListener("focus", () => {
+          render(allOptions, opts.readonly ? "" : input.value);
+          dropdown.classList.add("open");
+        });
+        input.addEventListener("input", () => {
+          if (opts.readonly) return;
+          hidden.value = "";
+          render(allOptions, input.value);
+          dropdown.classList.add("open");
+        });
+        input.addEventListener("blur", () => {
+          setTimeout(() => dropdown.classList.remove("open"), 150);
+        });
+        input.addEventListener("keydown", (e) => {
+          const items = dropdown.querySelectorAll(".ss-option, .ss-add-new");
+          if (e.key === "ArrowDown") {
+            highlighted = Math.min(highlighted + 1, items.length - 1);
+            items.forEach((el, i) =>
+              el.classList.toggle("highlighted", i === highlighted)
+            );
+          } else if (e.key === "ArrowUp") {
+            highlighted = Math.max(highlighted - 1, 0);
+            items.forEach((el, i) =>
+              el.classList.toggle("highlighted", i === highlighted)
+            );
+          } else if (e.key === "Enter" && highlighted >= 0) {
+            items[highlighted]?.dispatchEvent(new MouseEvent("mousedown"));
+          } else if (e.key === "Escape") {
+            dropdown.classList.remove("open");
+            input.blur();
+          }
+        });
+
+        // expose update
+        container._updateOptions = (newOpts) => {
+          allOptions = newOpts;
+        };
+      }
+
+      // Handle "Add new" org/coach inline
+      async function handleAddNew(
+        type,
+        name,
+        containerId,
+        hiddenInputId,
+        allOptions
+      ) {
+        try {
+          let result;
+          if (type === "org") result = await API.post("/admin/orgs", { name });
+          if (type === "coach")
+            result = await API.post("/admin/coaches", { name });
+          const newOpt = {
+            value: result.org_id || result.coach_id,
+            label: name,
+          };
+          allOptions.push(newOpt);
+          if (type === "org") DD.orgs.push({ org_id: newOpt.value, name });
+          if (type === "coach")
+            DD.coaches.push({ coach_id: newOpt.value, name });
+          document.getElementById(hiddenInputId).value = newOpt.value;
+          document
+            .getElementById(containerId)
+            .querySelector(".ss-input").value = name;
+          document
+            .getElementById(containerId)
+            .querySelector(".ss-dropdown")
+            .classList.remove("open");
+          showToast(`${name} added!`);
+        } catch (e) {
+          showToast(e.error || "Failed to add", "error");
+        }
+      }
+
+      // ── Update winner dropdown when teams change ──────
+      function updateWinnerDropdown() {
+        const t1id = document.getElementById("m-team1_id").value;
+        const t2id = document.getElementById("m-team2_id").value;
+        const t1lbl = document
+          .getElementById("ss-m-team1")
+          .querySelector(".ss-input").value;
+        const t2lbl = document
+          .getElementById("ss-m-team2")
+          .querySelector(".ss-input").value;
+        const opts = [];
+        if (t1id && t1lbl) opts.push({ value: t1id, label: t1lbl });
+        if (t2id && t2lbl) opts.push({ value: t2id, label: t2lbl });
+        const c = document.getElementById("ss-m-winner");
+        if (c._updateOptions) c._updateOptions(opts);
+      }
+
+      // ── Init all selects ──────────────────────────────
+      function initAllSelects() {
+        if (!DD.games) return;
+
+        const gameOpts = DD.games.map((g) => ({
+          value: g.game_id,
+          label: g.name,
+        }));
+        const statusOpts = DD.statuses.map((s) => ({
+          value: s.status_id,
+          label: s.name,
+        }));
+        const teamOpts = DD.teams.map((t) => ({
+          value: t.team_id,
+          label: t.name,
+          badge: t.region,
+        }));
+        const tournamentOpts = DD.tournaments.map((t) => ({
+          value: t.tournament_id,
+          label: t.name,
+        }));
+        const orgOpts = DD.orgs.map((o) => ({
+          value: o.org_id,
+          label: o.name,
+        }));
+        const coachOpts = DD.coaches.map((c) => ({
+          value: c.coach_id,
+          label: c.name,
+        }));
+
+        // Tournament form
+        initSearchableSelect("ss-t-game", gameOpts, "t-game_id", {
+          readonly: true,
+        });
+        initSearchableSelect("ss-t-status", statusOpts, "t-status_id", {
+          readonly: true,
+        });
+
+        // Match form
+        initSearchableSelect(
+          "ss-m-tournament",
+          tournamentOpts,
+          "m-tournament_id"
+        );
+        initSearchableSelect("ss-m-team1", teamOpts, "m-team1_id");
+        initSearchableSelect("ss-m-team2", teamOpts, "m-team2_id");
+        initSearchableSelect("ss-m-game", gameOpts, "m-game_id", {
+          readonly: true,
+        });
+        initSearchableSelect("ss-m-status", statusOpts, "m-status_id", {
+          readonly: true,
+        });
+        initSearchableSelect("ss-m-winner", [], "m-winner_team_id", {
+          readonly: true,
+        });
+
+        // Team form
+        initSearchableSelect("ss-team-org", orgOpts, "team-org_id", {
+          allowNew: true,
+          addNewType: "org",
+        });
+        initSearchableSelect("ss-team-coach", coachOpts, "team-coach_id", {
+          allowNew: true,
+          addNewType: "coach",
+        });
+        initSearchableSelect("ss-team-status", statusOpts, "team-status_id", {
+          readonly: true,
+        });
+
+        // Player form
+        initSearchableSelect("ss-p-team", teamOpts, "p-team_id", {});
+        initSearchableSelect("ss-p-status", statusOpts, "p-status_id", {
+          readonly: true,
+        });
+
+        // Bracket
+        initSearchableSelect(
+          "ss-bracket-tournament",
+          tournamentOpts,
+          "bracket-tournament_id"
+        );
+
+        // Set default statuses
+        preselectStatus("ss-t-status", "t-status_id", statusOpts, "Upcoming");
+        preselectStatus("ss-m-status", "m-status_id", statusOpts, "Upcoming");
+        preselectStatus(
+          "ss-team-status",
+          "team-status_id",
+          statusOpts,
+          "Active"
+        );
+        preselectStatus("ss-p-status", "p-status_id", statusOpts, "Active");
+
+        // Pre-select Valorant game
+        const val = gameOpts.find((g) => g.label === "Valorant");
+        if (val) {
+          ["ss-t-game", "ss-m-game"].forEach((id) => {
+            const c = document.getElementById(id);
+            if (c) {
+              c.querySelector(".ss-input").value = val.label;
+              document.getElementById(
+                id.replace("ss-", "").replace("game", "") +
+                  (id.includes("t-") ? "t-" : "m-") +
+                  "game_id"
+              ) ||
+                document.getElementById(
+                  id === "ss-t-game" ? "t-game_id" : "m-game_id"
+                );
+            }
+          });
+          document.getElementById("t-game_id").value = val.value;
+          document.getElementById("m-game_id").value = val.value;
+          document
+            .getElementById("ss-t-game")
+            .querySelector(".ss-input").value = val.label;
+          document
+            .getElementById("ss-m-game")
+            .querySelector(".ss-input").value = val.label;
+        }
+      }
+
+      function preselectStatus(containerId, hiddenId, statusOpts, name) {
+        const opt = statusOpts.find((s) => s.label === name);
+        if (opt) {
+          document.getElementById(hiddenId).value = opt.value;
+          document
+            .getElementById(containerId)
+            .querySelector(".ss-input").value = opt.label;
+        }
+      }
+
+      // ── Multi-select (players) ────────────────────────
+      function searchPlayers(q) {
+        const dd = document.getElementById("ms-player-dropdown");
+        if (!q.trim()) {
+          dd.classList.remove("open");
+          return;
+        }
+        const filtered = (DD.players || [])
+          .filter(
+            (p) =>
+              (p.username || "").toLowerCase().includes(q.toLowerCase()) ||
+              p.name.toLowerCase().includes(q.toLowerCase())
+          )
+          .filter((p) => !selectedPlayers.find((sp) => sp.id === p.player_id))
+          .slice(0, 20);
+        if (!filtered.length) {
+          dd.classList.remove("open");
+          return;
+        }
+        dd.innerHTML = filtered
+          .map(
+            (p) => `
+    <div class="ss-option" data-id="${p.player_id}" data-label="${
+              p.username || p.name
+            }" onmousedown="addPlayer(event,${p.player_id},'${(
+              p.username || p.name
+            ).replace(/'/g, "\\'")}')">
+      ${p.username || p.name}
+      <span class="ss-option-badge">${p.name}</span>
+    </div>`
+          )
+          .join("");
+        dd.classList.add("open");
+      }
+
+      function addPlayer(e, id, label) {
+        e.preventDefault();
+        selectedPlayers.push({ id, label });
+        renderPlayerTags();
+        document.getElementById("ms-player-input").value = "";
+        document.getElementById("ms-player-dropdown").classList.remove("open");
+      }
+
+      function removePlayer(id) {
+        selectedPlayers = selectedPlayers.filter((p) => p.id !== id);
+        renderPlayerTags();
+      }
+
+      function renderPlayerTags() {
+        const container = document.getElementById("ms-players");
+        const input = document.getElementById("ms-player-input");
+        container.querySelectorAll(".ms-tag").forEach((t) => t.remove());
+        selectedPlayers.forEach((p) => {
+          const tag = document.createElement("span");
+          tag.className = "ms-tag";
+          tag.innerHTML = `${p.label} <span class="ms-tag-remove" onclick="removePlayer(${p.id})">×</span>`;
+          container.insertBefore(tag, input);
+        });
+      }
+
+      function msKeydown(e) {
+        if (e.key === "Escape")
+          document
+            .getElementById("ms-player-dropdown")
+            .classList.remove("open");
+      }
+
+      // ══════════════════════════════════════════════════
+      //  FORM SUBMISSIONS
+      // ══════════════════════════════════════════════════
+      async function submitTournament() {
+        const err = document.getElementById("t-error");
+        const suc = document.getElementById("t-success");
+        err.style.display = "none";
+        suc.style.display = "none";
+
+        const body = {
+          name: document.getElementById("t-name").value.trim(),
+          game_id: document.getElementById("t-game_id").value,
+          start_date: document.getElementById("t-start_date").value,
+          end_date: document.getElementById("t-end_date").value || null,
+          type: document.getElementById("t-type").value || null,
+          format: document.getElementById("t-format").value || null,
+          prize_pool: document.getElementById("t-prize").value || null,
+          location: document.getElementById("t-location").value.trim() || null,
+          organizer:
+            document.getElementById("t-organizer").value.trim() || null,
+          number_of_teams: document.getElementById("t-numteams").value || null,
+          status_id: document.getElementById("t-status_id").value || 3,
+        };
+
+        if (!body.name) {
+          showError(err, "Tournament name is required");
+          return;
+        }
+        if (!body.game_id) {
+          showError(err, "Please select a game");
+          return;
+        }
+        if (!body.start_date) {
+          showError(err, "Start date is required");
+          return;
+        }
+
+        try {
+          const res = await API.post("/admin/tournaments", body);
+          suc.textContent = `✅ Tournament "${body.name}" created! (ID: ${res.tournament_id})`;
+          suc.style.display = "block";
+          showToast("Tournament created!");
+          // Refresh dropdown data
+          await loadDropdownData();
+          initAllSelects();
+        } catch (e) {
+          showError(err, e.error || "Failed to create tournament");
+        }
+      }
+
+      async function submitMatch() {
+        const err = document.getElementById("m-error");
+        const suc = document.getElementById("m-success");
+        err.style.display = "none";
+        suc.style.display = "none";
+
+        const body = {
+          tournament_id: document.getElementById("m-tournament_id").value,
+          game_id: document.getElementById("m-game_id").value,
+          team1_id: document.getElementById("m-team1_id").value,
+          team2_id: document.getElementById("m-team2_id").value,
+          winner_team_id:
+            document.getElementById("m-winner_team_id").value || null,
+          score_team1: document.getElementById("m-score_team1").value || 0,
+          score_team2: document.getElementById("m-score_team2").value || 0,
+          round: document.getElementById("m-round").value || null,
+          best_of: document.getElementById("m-best_of").value || 3,
+          map_name: document.getElementById("m-map_name").value || null,
+          status_id: document.getElementById("m-status_id").value || 3,
+          date: document.getElementById("m-date").value,
+          start_time: document.getElementById("m-start_time").value,
+          duration: document.getElementById("m-duration").value || null,
+          player_ids: selectedPlayers.map((p) => p.id),
+        };
+
+        if (!body.tournament_id) {
+          showError(err, "Please select a tournament");
+          return;
+        }
+        if (!body.team1_id) {
+          showError(err, "Please select Team 1");
+          return;
+        }
+        if (!body.team2_id) {
+          showError(err, "Please select Team 2");
+          return;
+        }
+        if (body.team1_id === body.team2_id) {
+          showError(err, "Teams must be different");
+          return;
+        }
+        if (!body.date) {
+          showError(err, "Please enter a match date");
+          return;
+        }
+        if (!body.start_time) {
+          showError(err, "Please enter a start time");
+          return;
+        }
+
+        try {
+          const res = await API.post("/admin/matches", body);
+          const t1 = document
+            .getElementById("ss-m-team1")
+            .querySelector(".ss-input").value;
+          const t2 = document
+            .getElementById("ss-m-team2")
+            .querySelector(".ss-input").value;
+          suc.textContent = `✅ Match ${t1} vs ${t2} created! (ID: ${res.match_id})`;
+          suc.style.display = "block";
+          showToast("Match created!");
+          selectedPlayers = [];
+          renderPlayerTags();
+        } catch (e) {
+          showError(err, e.error || "Failed to create match");
+        }
+      }
+
+      async function submitTeam() {
+        const err = document.getElementById("team-error");
+        const suc = document.getElementById("team-success");
+        err.style.display = "none";
+        suc.style.display = "none";
+
+        const body = {
+          name: document.getElementById("team-name").value.trim(),
+          region: document.getElementById("team-region").value || null,
+          org_id: document.getElementById("team-org_id").value || null,
+          coach_id: document.getElementById("team-coach_id").value || null,
+          founded_date: document.getElementById("team-founded").value,
+          logo: document.getElementById("team-logo").value.trim() || null,
+          status_id: document.getElementById("team-status_id").value || 1,
+        };
+
+        if (!body.name) {
+          showError(err, "Team name is required");
+          return;
+        }
+        if (!body.founded_date) {
+          showError(err, "Founded date is required");
+          return;
+        }
+
+        try {
+          const res = await API.post("/admin/teams", body);
+          suc.textContent = `✅ Team "${body.name}" created! (ID: ${res.team_id})`;
+          suc.style.display = "block";
+          showToast("Team created!");
+          await loadDropdownData();
+          initAllSelects();
+        } catch (e) {
+          showError(err, e.error || "Failed to create team");
+        }
+      }
+
+      async function submitPlayer() {
+        const err = document.getElementById("p-error");
+        const suc = document.getElementById("p-success");
+        err.style.display = "none";
+        suc.style.display = "none";
+
+        const body = {
+          name: document.getElementById("p-name").value.trim(),
+          username: document.getElementById("p-username").value.trim() || null,
+          email: document.getElementById("p-email").value.trim(),
+          country: document.getElementById("p-country").value.trim() || null,
+          region: document.getElementById("p-region").value || null,
+          age: document.getElementById("p-age").value || null,
+          rank: document.getElementById("p-rank").value || null,
+          bio: document.getElementById("p-bio").value.trim() || null,
+          team_id: document.getElementById("p-team_id").value || null,
+          status_id: document.getElementById("p-status_id").value || 1,
+        };
+
+        if (!body.name) {
+          showError(err, "Player name is required");
+          return;
+        }
+        if (!body.email) {
+          showError(err, "Email is required");
+          return;
+        }
+
+        try {
+          const res = await API.post("/admin/players", body);
+          suc.textContent = `✅ Player "${
+            body.username || body.name
+          }" created! (ID: ${res.player_id})`;
+          suc.style.display = "block";
+          showToast("Player created!");
+          await loadDropdownData();
+          initAllSelects();
+        } catch (e) {
+          showError(err, e.error || "Failed to create player");
+        }
+      }
+
+      // ── Bracket ───────────────────────────────────────
+      async function loadBracket() {
+        const tid = document.getElementById("bracket-tournament_id").value;
+        if (!tid) {
+          showToast("Please select a tournament", "error");
+          return;
+        }
+        const container = document.getElementById("bracket-container");
+        container.innerHTML = Components.loading();
+        try {
+          const matches = await API.get(`/admin/tournament-matches/${tid}`);
+          if (!matches.length) {
+            container.innerHTML = Components.empty(
+              "No matches in this tournament yet"
+            );
+            return;
+          }
+          renderBracket(matches, container, tid);
+        } catch (e) {
+          container.innerHTML = Components.empty("Failed to load bracket");
+        }
+      }
+
+      // Round classification helpers
+      const UPPER_ROUNDS = [
+        "Upper Quarterfinals",
+        "Upper Quarterfinal",
+        "Upper Semifinals",
+        "Upper Semifinal",
+        "Upper Final",
+        "Upper Finals",
+      ];
+      const LOWER_ROUNDS = [
+        "Lower Round 1",
+        "Lower Round 2",
+        "Lower Round 3",
+        "Lower Round 4",
+        "Lower Semifinals",
+        "Lower Semifinal",
+        "Lower Final",
+        "Lower Finals",
+      ];
+      const GROUP_ROUNDS = ["Group Stage", "Swiss", "Playoffs", "Round Robin"];
+      const FINAL_ROUNDS = ["Grand Final", "Final"];
+
+      function classifyRound(r) {
+        if (!r) return "group";
+        const ru = r.trim();
+        if (
+          UPPER_ROUNDS.some((x) => ru.toLowerCase().includes(x.toLowerCase()))
+        )
+          return "upper";
+        if (
+          LOWER_ROUNDS.some((x) => ru.toLowerCase().includes(x.toLowerCase()))
+        )
+          return "lower";
+        if (
+          FINAL_ROUNDS.some((x) => ru.toLowerCase().includes(x.toLowerCase()))
+        )
+          return "final";
+        if (
+          GROUP_ROUNDS.some((x) => ru.toLowerCase().includes(x.toLowerCase()))
+        )
+          return "group";
+        // Fallback: guess from name
+        if (ru.toLowerCase().includes("upper")) return "upper";
+        if (ru.toLowerCase().includes("lower")) return "lower";
+        if (ru.toLowerCase().includes("final")) return "final";
+        return "group";
+      }
+
+      const ROUND_ORDER_UPPER = [
+        "Upper Quarterfinals",
+        "Upper Quarterfinal",
+        "Upper Semifinals",
+        "Upper Semifinal",
+        "Semifinal",
+        "Upper Final",
+        "Upper Finals",
+      ];
+      const ROUND_ORDER_LOWER = [
+        "Lower Round 1",
+        "Lower Round 2",
+        "Lower Round 3",
+        "Lower Round 4",
+        "Lower Semifinals",
+        "Lower Semifinal",
+        "Lower Final",
+        "Lower Finals",
+      ];
+      const ROUND_ORDER_GROUP = [
+        "Group Stage",
+        "Swiss",
+        "Round Robin",
+        "Playoffs",
+        "Quarterfinal",
+      ];
+      const ROUND_ORDER_FINAL = ["Grand Final", "Final"];
+
+      function sortRounds(rounds, type) {
+        const order =
+          type === "upper"
+            ? ROUND_ORDER_UPPER
+            : type === "lower"
+            ? ROUND_ORDER_LOWER
+            : type === "final"
+            ? ROUND_ORDER_FINAL
+            : ROUND_ORDER_GROUP;
+        return rounds.sort((a, b) => {
+          const ai = order.findIndex((o) =>
+            a.toLowerCase().includes(o.toLowerCase())
+          );
+          const bi = order.findIndex((o) =>
+            b.toLowerCase().includes(o.toLowerCase())
+          );
+          if (ai === -1 && bi === -1) return a.localeCompare(b);
+          if (ai === -1) return 1;
+          if (bi === -1) return -1;
+          return ai - bi;
+        });
+      }
+
+      function matchCard(m) {
+        const done = m.status === "Completed";
+        const t1win = done && m.winner_id === m.t1_id;
+        const t2win = done && m.winner_id === m.t2_id;
+        return `
+  <div class="bk-match" onclick="location.href='/match-detail.html?id=${
+    m.match_id
+  }'" title="${m.t1_name} vs ${m.t2_name}">
+    <div class="bk-team ${
+      t1win ? "bk-win" : done && m.winner_id ? "bk-lose" : ""
+    }">
+      ${
+        m.t1_logo
+          ? `<img class="bk-logo" src="${m.t1_logo}" onerror="this.style.display='none'" alt="">`
+          : `<div class="bk-logo-ph">${(m.t1_name || "?")[0]}</div>`
+      }
+      <span class="bk-tname">${m.t1_name || "TBD"}</span>
+      <span class="bk-score ${
+        t1win ? "bk-sw" : done && m.winner_id ? "bk-sl" : ""
+      }">${done ? m.score_team1 : "—"}</span>
+    </div>
+    <div class="bk-team ${
+      t2win ? "bk-win" : done && m.winner_id ? "bk-lose" : ""
+    }">
+      ${
+        m.t2_logo
+          ? `<img class="bk-logo" src="${m.t2_logo}" onerror="this.style.display='none'" alt="">`
+          : `<div class="bk-logo-ph">${(m.t2_name || "?")[0]}</div>`
+      }
+      <span class="bk-tname">${m.t2_name || "TBD"}</span>
+      <span class="bk-score ${
+        t2win ? "bk-sw" : done && m.winner_id ? "bk-sl" : ""
+      }">${done ? m.score_team2 : "—"}</span>
+    </div>
+    ${
+      done && m.winner_id
+        ? `<div class="bk-match-footer">${m.round || ""} ${
+            m.best_of ? `BO${m.best_of}` : ""
+          } ${m.map_name ? `· ${m.map_name}` : ""}</div>`
+        : ""
+    }
+  </div>`;
+      }
+
+      // Build one bracket band using SVG connector lines (Esports Hub style)
+      function buildBand(label, accentColor, sortedRounds, byRound) {
+        if (!sortedRounds.length) return "";
+        const CARD_W = 210,
+          CARD_H = 80,
+          COL_GAP = 56,
+          COL_W = CARD_W + COL_GAP;
+        const cols = sortedRounds.map((r) => byRound[r] || []);
+        const maxCards = Math.max(...cols.map((c) => c.length));
+        const baseGap = 20;
+
+        function colCenters(ci, count) {
+          const gap = baseGap * Math.pow(2, ci);
+          const step = CARD_H + gap;
+          const totalH = count * CARD_H + (count - 1) * gap;
+          const bigH = maxCards * CARD_H + (maxCards - 1) * baseGap;
+          const offsetY = (bigH - totalH) / 2;
+          return Array.from(
+            { length: count },
+            (_, i) => offsetY + i * step + CARD_H / 2
+          );
+        }
+
+        let svgLines = "";
+        for (let ci = 0; ci < cols.length - 1; ci++) {
+          const srcCtrs = colCenters(ci, cols[ci].length);
+          const dstCtrs = colCenters(ci + 1, cols[ci + 1].length);
+          const srcX = ci * COL_W + CARD_W;
+          const dstX = (ci + 1) * COL_W;
+          for (let di = 0; di < dstCtrs.length; di++) {
+            const s1 = srcCtrs[di * 2],
+              s2 = srcCtrs[di * 2 + 1],
+              dst = dstCtrs[di];
+            const midX = srcX + COL_GAP / 2;
+            if (s1 !== undefined && s2 !== undefined) {
+              const midY = (s1 + s2) / 2;
+              svgLines += `<line x1="${srcX}" y1="${s1}" x2="${midX}" y2="${s1}" stroke="#363a4e" stroke-width="1.5"/>`;
+              svgLines += `<line x1="${srcX}" y1="${s2}" x2="${midX}" y2="${s2}" stroke="#363a4e" stroke-width="1.5"/>`;
+              svgLines += `<line x1="${midX}" y1="${s1}" x2="${midX}" y2="${s2}" stroke="#363a4e" stroke-width="1.5"/>`;
+              svgLines += `<line x1="${midX}" y1="${midY}" x2="${dstX}" y2="${dst}" stroke="#363a4e" stroke-width="1.5"/>`;
+            } else if (s1 !== undefined) {
+              svgLines += `<line x1="${srcX}" y1="${s1}" x2="${dstX}" y2="${dst}" stroke="#363a4e" stroke-width="1.5"/>`;
+            }
+          }
+        }
+
+        const svgH = maxCards * CARD_H + (maxCards - 1) * baseGap + 40;
+        const svgW = cols.length * COL_W + 20;
+        const colsHTML = sortedRounds
+          .map((r, ci) => {
+            const ms = cols[ci];
+            const ctrs = colCenters(ci, ms.length);
+            const cards = ms
+              .map((m, mi) => {
+                const top = ctrs[mi] - CARD_H / 2;
+                return `<div style="position:absolute;top:${top}px;left:0;width:${CARD_W}px">${matchCard(
+                  m
+                )}</div>`;
+              })
+              .join("");
+            return `<div style="position:absolute;left:${
+              ci * COL_W
+            }px;top:0;width:${CARD_W}px;height:${svgH}px">
+      <div style="font-family:var(--font-cond);font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:${accentColor};text-align:center;position:absolute;top:0;left:0;right:0">${r}</div>
+      <div style="position:absolute;top:22px;left:0;right:0;bottom:0">${cards}</div>
+    </div>`;
+          })
+          .join("");
+
+        return `<div style="margin-bottom:28px">
+    <div style="font-family:var(--font-cond);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;border-left:3px solid ${accentColor};color:${accentColor};padding:5px 12px;background:var(--bg-3);border-radius:0 4px 4px 0;display:inline-block;margin-bottom:12px">${label}</div>
+    <div style="position:relative;width:${svgW}px;height:${svgH + 22}px">
+      <svg width="${svgW}" height="${
+          svgH + 22
+        }" style="position:absolute;top:22px;left:0;overflow:visible;pointer-events:none">${svgLines}</svg>
+      ${colsHTML}
+    </div>
+  </div>`;
+      }
+
+      function renderBracket(matches, container, tid) {
+        const byRound = {};
+        matches.forEach((m) => {
+          const r = m.round || "Round 1";
+          if (!byRound[r]) byRound[r] = [];
+          byRound[r].push(m);
+        });
+        const allRounds = Object.keys(byRound);
+        const upperR = sortRounds(
+          allRounds.filter((r) => classifyRound(r) === "upper"),
+          "upper"
+        );
+        const lowerR = sortRounds(
+          allRounds.filter((r) => classifyRound(r) === "lower"),
+          "lower"
+        );
+        const groupR = sortRounds(
+          allRounds.filter((r) => classifyRound(r) === "group"),
+          "group"
+        );
+        const finalR = sortRounds(
+          allRounds.filter((r) => classifyRound(r) === "final"),
+          "final"
+        );
+        const otherR = allRounds.filter(
+          (r) =>
+            !["upper", "lower", "group", "final"].includes(classifyRound(r))
+        );
+        const tname =
+          (DD.tournaments || []).find((t) => t.tournament_id == tid)?.name ||
+          "Tournament";
+
+        container.innerHTML = `
+  <style>
+    .bk-wrap { overflow-x:auto; overflow-y:visible; padding:4px 0 16px; }
+    .bk-match { background:var(--bg-3); border:1px solid var(--border-2); border-radius:var(--radius); overflow:hidden; cursor:pointer; transition:border-color var(--trans),box-shadow var(--trans); }
+    .bk-match:hover { border-color:var(--accent); box-shadow:0 4px 20px rgba(255,70,85,.2); }
+    .bk-team { display:flex; align-items:center; gap:6px; padding:7px 8px; border-bottom:1px solid var(--border); font-size:12px; }
+    .bk-team:last-of-type { border-bottom:none; }
+    .bk-win  { background:rgba(74,222,128,.07); }
+    .bk-lose { opacity:.5; }
+    .bk-logo { width:16px; height:16px; object-fit:contain; flex-shrink:0; }
+    .bk-logo-ph { width:16px; height:16px; border-radius:2px; background:var(--bg-4); display:flex; align-items:center; justify-content:center; font-family:var(--font-head); font-size:9px; font-weight:700; color:var(--text-3); flex-shrink:0; }
+    .bk-tname { font-family:var(--font-head); font-size:12px; font-weight:700; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .bk-score { font-family:var(--font-cond); font-size:14px; font-weight:700; min-width:18px; text-align:right; color:var(--text-3); flex-shrink:0; }
+    .bk-sw { color:var(--green); } .bk-sl { color:var(--text-3); }
+    .bk-match-footer { padding:3px 8px; font-size:10px; color:var(--text-3); background:var(--bg-2); border-top:1px solid var(--border); font-family:var(--font-cond); }
+    .bk-sep { height:1px; background:var(--border); margin:4px 0 24px; }
+  </style>
+  <div class="card" style="padding:20px">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px">
+      <div><div style="font-family:var(--font-head);font-size:18px;font-weight:700">${tname}</div><div style="font-size:12px;color:var(--text-3);margin-top:2px">${
+          matches.length
+        } matches · Click any to view detail</div></div>
+      <div style="display:flex;gap:14px;align-items:center;font-size:11px">
+        <span style="color:var(--green);display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.3);display:inline-block;border-radius:1px"></span>Winner</span>
+        <span style="color:var(--text-3);display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;background:var(--bg-3);border:1px solid var(--border);display:inline-block;border-radius:1px"></span>Pending</span>
+      </div>
+    </div>
+    <div class="bk-wrap">
+      ${
+        groupR.length
+          ? buildBand("Group Stage", "#60a5fa", groupR, byRound)
+          : ""
+      }
+      ${
+        groupR.length && (upperR.length || lowerR.length)
+          ? '<div class="bk-sep"></div>'
+          : ""
+      }
+      ${
+        upperR.length
+          ? buildBand("Upper Bracket", "#a78bfa", upperR, byRound)
+          : ""
+      }
+      ${
+        lowerR.length
+          ? buildBand("Lower Bracket", "#fbbf24", lowerR, byRound)
+          : ""
+      }
+      ${
+        finalR.length
+          ? buildBand("Grand Final", "#ff4655", finalR, byRound)
+          : ""
+      }
+      ${
+        otherR.length
+          ? buildBand("Matches", "var(--text-2)", otherR, byRound)
+          : ""
+      }
+      ${
+        !groupR.length &&
+        !upperR.length &&
+        !lowerR.length &&
+        !finalR.length &&
+        !otherR.length
+          ? buildBand("Bracket", "var(--text-2)", allRounds, byRound)
+          : ""
+      }
+    </div>
+  </div>`;
+      }
+
+      // ── Dashboard ─────────────────────────────────────
+      async function loadDashboard() {
+        try {
+          // 1. We now fetch matchCount separately, and filter matches to 'completed'
+          const [teams, players, tournaments, matchCount, matches] =
+            await Promise.all([
+              API.get("/teams"),
+              API.get("/players?limit=1000"),
+              API.get("/tournaments"),
+              API.get("/matches/count"), // Gets the TRUE total (e.g., 103)
+              API.get("/matches?status=ongoing"), // Gets clean list for recent matches
+            ]);
+
+          // 2. Stats Block
+          document.getElementById("dash-stats").innerHTML = [
+            {
+              icon: "⚔️",
+              val: matchCount.total, // Uses the true backend count here
+              lbl: "Matches",
+              color: "var(--accent)",
+            },
+            {
+              icon: "👤",
+              val: players.length,
+              lbl: "Players",
+              color: "var(--green)",
+            },
+            {
+              icon: "🛡️",
+              val: teams.length,
+              lbl: "Teams",
+              color: "var(--blue)",
+            },
+            {
+              icon: "🏆",
+              val: tournaments.length,
+              lbl: "Tournaments",
+              color: "var(--yellow)",
+            },
+          ]
+            .map(
+              (s) => `
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;display:flex;align-items:center;gap:14px">
+        <div style="font-size:28px">${s.icon}</div>
+        <div>
+          <div style="font-family:var(--font-head);font-size:28px;font-weight:700;color:${s.color};line-height:1">${s.val}</div>
+          <div style="font-size:12px;color:var(--text-3);text-transform:uppercase;letter-spacing:0.8px;margin-top:2px">${s.lbl}</div>
+        </div>
+      </div>`
+            )
+            .join("");
+
+          // 3. Recent matches (Now uses the clean, filtered matches array)
+          document.getElementById("dash-matches").innerHTML = matches.length
+            ? matches
+                .map(
+                  (m) => `
+      <div class="sidebar-item" onclick="location.href='/match-detail.html?id=${
+        m.match_id
+      }'">
+        <div style="flex:1;min-width:0">
+          <div style="font-family:var(--font-head);font-size:13px;font-weight:700">${
+            m.t1_name
+          } <span style="color:var(--text-3)">vs</span> ${m.t2_name}</div>
+          <div style="font-size:11px;color:var(--text-3)">${
+            m.tournament_name
+          } · ${m.round || ""}</div>
+        </div>
+        <span style="font-family:var(--font-cond);font-size:15px;font-weight:700">${
+          m.score_team1
+        }:${m.score_team2}</span>
+      </div>`
+                )
+                .join("")
+            : '<div class="empty" style="padding:24px">No recent matches</div>';
+          // Active tournaments
+          document.getElementById("dash-events").innerHTML = tournaments.length
+            ? tournaments
+                .filter((e) => e.status !== "Completed")
+                .slice(0, 5)
+                .map(
+                  (ev) => `
+        <div class="sidebar-item" onclick="location.href='/event-detail.html?id=${
+          ev.tournament_id
+        }'">
+          <div style="flex:1;min-width:0">
+            <div style="font-family:var(--font-head);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${
+              ev.name
+            }</div>
+            <div style="font-size:11px;color:var(--text-3)">${ev.status} · ${
+                    ev.registered_teams || 0
+                  } teams</div>
+          </div>
+          ${
+            ev.prize_pool
+              ? `<span style="font-family:var(--font-cond);font-size:13px;font-weight:700;color:var(--yellow)">${Components.formatPrize(
+                  ev.prize_pool
+                )}</span>`
+              : ""
+          }
+        </div>`
+                )
+                .join("")
+            : '<div class="empty" style="padding:24px">No active tournaments</div>';
+        } catch (e) {}
+      }
+
+      // ── Reset forms ───────────────────────────────────
+      function resetForm(type) {
+        const formInputs = document.querySelectorAll(
+          `#section-add-${type} input, #section-add-${type} select, #section-add-${type} textarea`
+        );
+        formInputs.forEach((el) => {
+          if (el.type !== "hidden") el.value = "";
+        });
+        if (type === "match") {
+          document
+            .querySelectorAll(".map-chip")
+            .forEach((c) => c.classList.remove("active"));
+          document.getElementById("m-map_name").value = "";
+          selectedPlayers = [];
+          renderPlayerTags();
+        }
+        const errId = {
+          tournament: "t-error",
+          match: "m-error",
+          team: "team-error",
+          player: "p-error",
+        }[type];
+        const sucId = {
+          tournament: "t-success",
+          match: "m-success",
+          team: "team-success",
+          player: "p-success",
+        }[type];
+        document.getElementById(errId).style.display = "none";
+        document.getElementById(sucId).style.display = "none";
+      }
+
+      function showError(el, msg) {
+        el.textContent = "⚠️ " + msg;
+        el.style.display = "block";
+        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+
+      // ════════════════════════════════════════════════════
+      //  CONTENTION ADMIN
+      // ════════════════════════════════════════════════════
+      let ctCurrentFilter = "open";
+
+      async function ctTab(btn, filter) {
+        document
+          .querySelectorAll("#ct-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        ctCurrentFilter = filter;
+        await loadContentions(filter);
+      }
+
+      async function loadContentions(filter) {
+        const panel = document.getElementById("ct-panel");
+        panel.innerHTML = Components.loading();
+        try {
+          const list = await API.get("/contentions");
+          let items = list;
+          if (filter === "open")
+            items = list.filter((c) => {
+              const stat = String(c.status_name || "").toLowerCase().trim();
+              return stat === "pending" || stat === "active";
+            });
+          if (filter === "bans") items = list.filter((c) => !!c.ban_id);
+          if (filter === "appeals") items = []; // loaded separately
+
+          // if (filter === "appeals") {
+          //   panel.innerHTML = `<div class="card"><div style="padding:16px;color:var(--text-3);font-size:13px">Appeal management — view appeal details inside each contention below.</div></div>`;
+          //   return;
+          // }
+          if (filter === "appeals") {
+            try {
+              const appeals = await API.get("/contentions/all-appeals/list");
+              if (!appeals.length) {
+                panel.innerHTML = Components.empty("No appeals found");
+                return;
+              }
+              
+              panel.innerHTML = appeals.map(a => {
+                const isPending = (a.status_name || "").toLowerCase() === "pending";
+                return `
+                <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:10px;padding:16px">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                    <div>
+                      <div style="font-family:var(--font-cond);font-size:11px;color:#60a5fa;font-weight:700">APPEAL #${a.support_id} · CONTENTION #${a.contention_id}</div>
+                      <div style="font-family:var(--font-head);font-size:15px;font-weight:700;margin-top:2px">${a.subject}</div>
+                      <div style="font-size:12px;color:var(--text-3);margin-top:2px">Filed by: <strong>${a.player_name || "Unknown"}</strong> (@${a.player_username || "unknown"})</div>
+                    </div>
+                    ${statusBadge(a.status_name)}
+                  </div>
+                  <div style="font-size:13px;color:var(--text-2);margin:12px 0;line-height:1.6;background:var(--bg-3);padding:12px;border-radius:var(--radius)">${a.description}</div>
+                  
+                  ${isPending ? `
+                  <div style="display:flex;gap:8px;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+                    <button class="btn btn-primary btn-sm" style="background:var(--green);border-color:var(--green)" onclick="resolveAppeal(${a.support_id}, true)">✅ Grant Appeal & Lift Ban</button>
+                    <button class="btn btn-ghost btn-sm" style="color:var(--red)" onclick="resolveAppeal(${a.support_id}, false)">❌ Deny Appeal</button>
+                  </div>` : `
+                  <div style="font-size:12px;color:var(--text-3);margin-top:12px;border-top:1px solid var(--border);padding-top:12px">Resolved ${Components.formatDate(a.resolved_at)}</div>
+                  `}
+                </div>`;
+              }).join("");
+            } catch(e) {
+               panel.innerHTML = Components.empty("Failed to load appeals");
+            }
+            return;
+          }
+
+          if (!items.length) {
+            panel.innerHTML = Components.empty("No contentions found");
+            return;
+          }
+
+          panel.innerHTML = items
+            .map((c) => {
+              // Parse Filer Display
+              let filerName = "Unknown";
+              let filerDisplay = "";
+              if (c.filer_type === 'player') {
+                  filerName = c.filer_player_name || c.filer_player_username || "Unknown";
+                  filerDisplay = `Filed by: <strong>${c.filer_player_name || c.filer_player_username || "Unknown"}</strong>`;
+              } else if (c.filer_type === 'team') {
+                  filerName = c.filer_team_name || "Unknown Team";
+                  filerDisplay = `Filed by Team: <strong>${filerName}</strong>`;
+              } else {
+                  filerName = c.filer_coach_name || "Unknown Coach";
+                  filerDisplay = `Filed by Coach: <strong>${filerName}</strong>`;
+              }
+
+              // Parse Target Display
+              let targetDisplay = "<span style='color:var(--text-3)'>None specified</span>";
+              if (c.target_player_name || c.target_player_username) {
+                  targetDisplay = `Player: <strong>${c.target_player_name || c.target_player_username}</strong>`;
+              } else if (c.target_team_name) {
+                  targetDisplay = `Team: <strong>${c.target_team_name}</strong>`;
+              }
+
+              // Safe lower-case check to ensure buttons show up
+              const statLow = String(c.status_name || "").toLowerCase();
+              const isOpen = !c.ban_id && (statLow === "pending" || statLow === "active");
+
+              return `
+    <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:10px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px 16px;flex-wrap:wrap;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-family:var(--font-cond);font-size:11px;color:var(--text-3);font-weight:700">#${c.contention_id} · ${Components.formatDate(c.created_at)}</div>
+          <div style="font-family:var(--font-head);font-size:15px;font-weight:700;margin-top:2px">${c.reason}</div>
+          <div style="font-size:12px;color:var(--text-2);margin-top:4px">
+            ${filerDisplay} <span style="margin:0 6px;color:var(--border-2)">|</span> Filed against: ${targetDisplay}
+          </div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+          ${statusBadge(c.status_name)}
+          ${c.ban_id ? `<span style="padding:2px 8px;border-radius:3px;background:rgba(248,113,113,.12);color:var(--red);border:1px solid rgba(248,113,113,.3);font-family:var(--font-cond);font-size:11px;font-weight:700">⛔ Banned</span>` : ""}
+        </div>
+      </div>
+      <div style="padding:12px 16px">
+        ${c.description ? `<div style="font-size:13px;color:var(--text-2);margin-bottom:12px;line-height:1.6">${c.description.length > 180 ? c.description.slice(0, 180) + "…" : c.description}</div>` : ""}
+        
+        ${isOpen ? `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:12px;margin-top:8px">
+          <button class="btn btn-primary btn-sm" style="background:var(--red);border-color:var(--red)" onclick="openIssueBan(${c.contention_id},'${filerName.replace(/'/g, "\\'")}',${c.target_player_id || 0}, ${c.target_team_id || 0})">⛔ Issue Ban</button>
+          <button class="btn btn-ghost btn-sm" onclick="rejectContention(${c.contention_id})">Dismiss / Reject</button>
+        </div>` : ""}
+
+        ${statLow === "resolved" && !c.ban_id ? `<span style="font-size:12px;color:var(--green)">✅ Resolved ${Components.formatDate(c.resolved_at)}</span>` : ""}
+        ${c.ban_id ? `<div style="font-size:12px;color:var(--text-3)">Ban: ${c.ban_type || "—"} · ${Components.formatDate(c.ban_start)} → ${c.ban_end ? Components.formatDate(c.ban_end) : "Permanent"}</div>` : ""}
+      </div>
+    </div>`;
+            })
+            .join("");
+        } catch (e) {
+          panel.innerHTML = Components.empty("Failed to load contentions");
+        }
+      }
+
+      function statusBadge(name) {
+        if (!name)
+          return `<span style="padding:2px 8px;border-radius:3px;background:rgba(251,191,36,.1);color:var(--yellow);border:1px solid rgba(251,191,36,.3);font-family:var(--font-cond);font-size:11px;font-weight:700">Pending</span>`;
+        const n = name.toLowerCase();
+        const col = n.includes("pending")
+          ? "rgba(251,191,36,.1),var(--yellow),rgba(251,191,36,.3)"
+          : n.includes("resolv")
+          ? "rgba(74,222,128,.1),var(--green),rgba(74,222,128,.3)"
+          : n.includes("review")
+          ? "rgba(96,165,250,.1),#60a5fa,rgba(96,165,250,.3)"
+          : "rgba(251,191,36,.1),var(--yellow),rgba(251,191,36,.3)";
+        const [bg, color, border] = col.split(",");
+        return `<span style="padding:2px 8px;border-radius:3px;background:${bg};color:${color};border:1px solid ${border};font-family:var(--font-cond);font-size:11px;font-weight:700">${name}</span>`;
+      }
+
+      async function updateCtStatus(id) {
+        const statusId = document.getElementById(`ct-status-${id}`)?.value;
+        if (!statusId) return;
+        try {
+          (await API.post) ? null : null;
+          const res = await fetch("/api/contentions/" + id + "/status", {
+            method: "PUT",
+            headers: API.headers(),
+            body: JSON.stringify({ status_id: parseInt(statusId) }),
+          });
+          if (!res.ok) throw await res.json();
+          showToast("Status updated");
+          await loadContentions(ctCurrentFilter);
+        } catch (e) {
+          showToast(e.error || "Failed", "error");
+        }
+      }
+
+      //reject the filed contention
+      async function rejectContention(id) {
+        if (!confirm("Are you sure you want to dismiss this contention? It will be marked as resolved with no action taken.")) return;
+        try {
+          // Send status_id: 8 (Resolved) to the backend
+          const res = await fetch("/api/contentions/" + id + "/status", {
+            method: "PUT",
+            headers: API.headers(),
+            body: JSON.stringify({ status_id: 8, note: "Dismissed by Admin" }),
+          });
+          if (!res.ok) throw await res.json();
+          showToast("Contention dismissed and resolved");
+          await loadContentions(ctCurrentFilter);
+        } catch (e) {
+          showToast(e.error || "Failed to reject", "error");
+        }
+      }
+      
+      async function resolveAppeal(supportId, liftBan) {
+        if (!confirm(`Are you sure you want to ${liftBan ? 'GRANT' : 'DENY'} this appeal?`)) return;
+        try {
+          const res = await fetch("/api/contentions/appeals/" + supportId, {
+            method: "PUT",
+            headers: API.headers(),
+            body: JSON.stringify({ 
+              status_id: 8, // 8 = Resolved in your database
+              lift_ban: liftBan,
+              rejection_note: liftBan ? "" : "Appeal denied after review."
+            }),
+          });
+          if (!res.ok) throw await res.json();
+          showToast(liftBan ? "Appeal granted and ban lifted" : "Appeal denied");
+          await loadContentions("appeals"); // Refresh the tab
+        } catch (e) {
+          showToast(e.error || "Failed to resolve appeal", "error");
+        }
+      }
+
+      // Issue Ban Modal
+      let issueBanContentionId = null;
+      function openIssueBan(cid, filerName, playerId, target_team_id) {
+        issueBanContentionId = cid;
+        const existing = document.getElementById("issue-ban-modal");
+        if (existing) existing.remove();
+
+        const modal = document.createElement("div");
+        modal.id = "issue-ban-modal";
+        modal.className = "modal-overlay open";
+        modal.style.cssText =
+          "position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto";
+        modal.innerHTML = `
+  <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px;max-width:600px;width:100%;box-shadow:var(--shadow-lg);position:relative;margin:auto">
+    <button onclick="document.getElementById('issue-ban-modal').remove()" style="position:absolute;top:14px;right:14px;background:none;border:none;color:var(--text-3);font-size:20px;cursor:pointer;line-height:1">×</button>
+    <div style="font-family:var(--font-head);font-size:18px;font-weight:700;color:var(--red);margin-bottom:4px">⛔ Issue Ban — Contention #${cid}</div>
+    <div style="font-size:13px;color:var(--text-2);margin-bottom:20px">Filed by: <strong>${filerName}</strong></div>
+    <div id="ib-err" class="form-error" style="display:none"></div>
+
+    <!-- Ban Target Type -->
+    <div style="margin-bottom:16px">
+      <div style="font-family:var(--font-cond);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:8px">Ban Target</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        <button class="filer-btn active" id="ib-target-player-btn" onclick="ibSwitchTarget('player')">👤 Player(s)</button>
+        <button class="filer-btn"        id="ib-target-team-btn"   onclick="ibSwitchTarget('team')">🛡️ Team</button>
+        <button class="filer-btn"        id="ib-target-both-btn"   onclick="ibSwitchTarget('both')">👥 Both</button>
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Ban Type *</label>
+        <select class="form-select" id="ib-type">
+          <option value="player_ban">Player Ban</option>
+          <option value="team_ban">Team Ban</option>
+          <option value="tournament_ban">Tournament Ban</option>
+          <option value="warning">Warning (No suspension)</option>
+          <option value="permanent">Permanent Ban</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Game (optional)</label>
+        <div class="searchable-select" id="ss-ib-game"><input class="ss-input" placeholder="All games" readonly><input type="hidden" id="ib-game_id"></div>
+      </div>
+    </div>
+
+    <!-- Player target -->
+    <div id="ib-player-section">
+      <div class="form-group">
+        <label class="form-label">Player(s) to Ban *</label>
+        <div class="searchable-select" id="ss-ib-player"><input class="ss-input" placeholder="Search player..."><input type="hidden" id="ib-player_id" value="${
+          playerId || ""
+        }"></div>
+        <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap" id="ib-player-tags"></div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px">Select a player and click Add. You can add multiple.</div>
+        <button class="btn btn-ghost btn-sm" style="margin-top:6px" onclick="ibAddPlayer()">+ Add Player</button>
+      </div>
+    </div>
+
+    <!-- Team target -->
+    <div id="ib-team-section" style="display:none">
+      <div class="form-grid">
+        <div class="form-group">
+          <label class="form-label">Team to Ban *</label>
+          <div class="searchable-select" id="ss-ib-team"><input class="ss-input" placeholder="Search team..."><input type="hidden" id="ib-team_id"></div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Ban Scope</label>
+          <select class="form-select" id="ib-ban-scope">
+            <option value="tournament">Tournament Only</option>
+            <option value="league">League</option>
+            <option value="all">All Competitions</option>
+            <option value="roster_lock">Roster Lock (No transfers)</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="ib-affects-roster" checked>
+          <span>Also suspend all current roster players</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="form-grid" style="margin-top:4px">
+      <div class="form-group">
+        <label class="form-label">Duration (days)</label>
+        <input class="form-input" type="number" id="ib-duration" placeholder="Blank = indefinite" min="1">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Start Date *</label>
+        <input class="form-input" type="date" id="ib-start" value="${
+          new Date().toISOString().split("T")[0]
+        }">
+      </div>
+      <div class="form-group">
+        <label class="form-label">End Date</label>
+        <input class="form-input" type="date" id="ib-end">
+      </div>
+    </div>
+    <div class="form-group" style="margin-top:4px">
+      <label class="form-label">Official Description</label>
+      <textarea class="form-input" id="ib-desc" rows="2" placeholder="Official statement / reason..."></textarea>
+    </div>
+    <div class="form-group" style="margin-top:8px">
+      <label class="form-label">Evidence</label>
+      <input class="form-input" id="ib-evidence" placeholder="Match IDs, screenshot links, logs...">
+    </div>
+    <div style="display:flex;gap:10px;margin-top:18px">
+      <button class="btn btn-primary" style="background:var(--red);border-color:var(--red);flex:1" onclick="submitBan()">Issue Ban</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('issue-ban-modal').remove()">Cancel</button>
+    </div>
+  </div>`;
+        document.body.appendChild(modal);
+
+        // Init selects
+        const playerOpts = (DD.players || []).map((p) => ({
+          value: p.player_id,
+          label: p.username || p.name,
+          badge: p.country,
+        }));
+        const teamOpts = (DD.teams || []).map((t) => ({
+          value: t.team_id,
+          label: t.name,
+          badge: t.region,
+        }));
+        const gameOpts = (DD.games || []).map((g) => ({
+          value: g.game_id,
+          label: g.name,
+        }));
+        initSearchableSelect("ss-ib-player", playerOpts, "ib-player_id", {});
+        initSearchableSelect("ss-ib-team", teamOpts, "ib-team_id", {});
+        initSearchableSelect("ss-ib-game", gameOpts, "ib-game_id", {
+          readonly: true,
+        });
+
+        if (playerId) {
+          const p = (DD.players || []).find((x) => x.player_id == playerId);
+          if (p) {
+            document.getElementById("ib-player_id").value = playerId;
+            document
+              .getElementById("ss-ib-player")
+              .querySelector(".ss-input").value = p.username || p.name;
+          }
+        }
+      }
+
+      // Track selected players for multi-ban
+      let ibSelectedPlayers = [];
+
+      function ibSwitchTarget(type) {
+        ["player", "team", "both"].forEach((t) => {
+          const btn = document.getElementById("ib-target-" + t + "-btn");
+          if (btn) btn.classList.toggle("active", t === type);
+        });
+        document.getElementById("ib-player-section").style.display =
+          type === "player" || type === "both" ? "" : "none";
+        document.getElementById("ib-team-section").style.display =
+          type === "team" || type === "both" ? "" : "none";
+        // Update ban type default
+        const banTypeSel = document.getElementById("ib-type");
+        if (type === "team") banTypeSel.value = "team_ban";
+        if (type === "player") banTypeSel.value = "player_ban";
+        if (type === "both") banTypeSel.value = "team_ban";
+      }
+
+      function ibAddPlayer() {
+        const pid = document.getElementById("ib-player_id").value;
+        const pname = document
+          .getElementById("ss-ib-player")
+          .querySelector(".ss-input").value;
+        if (!pid || !pname) {
+          showToast("Select a player first", "error");
+          return;
+        }
+        if (ibSelectedPlayers.find((x) => x.id == pid)) {
+          showToast("Already added", "error");
+          return;
+        }
+        ibSelectedPlayers.push({ id: parseInt(pid), label: pname });
+        renderIbPlayerTags();
+        document.getElementById("ib-player_id").value = "";
+        document
+          .getElementById("ss-ib-player")
+          .querySelector(".ss-input").value = "";
+      }
+
+      function ibRemovePlayer(id) {
+        ibSelectedPlayers = ibSelectedPlayers.filter((p) => p.id !== id);
+        renderIbPlayerTags();
+      }
+
+      function renderIbPlayerTags() {
+        const el = document.getElementById("ib-player-tags");
+        if (!el) return;
+        el.innerHTML = ibSelectedPlayers
+          .map(
+            (p) => `
+    <span style="display:inline-flex;align-items:center;gap:5px;padding:2px 8px;background:var(--accent-dim);border:1px solid rgba(255,70,85,.25);border-radius:3px;font-size:12px;color:var(--accent);font-family:var(--font-cond);font-weight:600">
+      ${p.label}
+      <span style="cursor:pointer;font-size:14px;line-height:1" onclick="ibRemovePlayer(${p.id})">×</span>
+    </span>`
+          )
+          .join("");
+      }
+
+      async function submitBan() {
+        const errEl = document.getElementById("ib-err");
+        errEl.style.display = "none";
+
+        // Determine target
+        const playerSection =
+          document.getElementById("ib-player-section").style.display !== "none";
+        const teamSection =
+          document.getElementById("ib-team-section").style.display !== "none";
+
+        // Collect player IDs
+        let playerIds = [...ibSelectedPlayers.map((p) => p.id)];
+        const directPid = document.getElementById("ib-player_id").value;
+        if (directPid && !playerIds.includes(parseInt(directPid)))
+          playerIds.push(parseInt(directPid));
+
+        const teamId = document.getElementById("ib-team_id")?.value || null;
+
+        if (playerSection && !playerIds.length && !teamId) {
+          errEl.textContent =
+            "Please select at least one player or a team to ban";
+          errEl.style.display = "block";
+          return;
+        }
+        const startDate = document.getElementById("ib-start").value;
+        if (!startDate) {
+          errEl.textContent = "Start date required";
+          errEl.style.display = "block";
+          return;
+        }
+
+        const body = {
+          ban_type: document.getElementById("ib-type").value,
+          player_ids: playerSection && playerIds.length ? playerIds : undefined,
+          team_id: teamSection && teamId ? parseInt(teamId) : undefined,
+          affects_roster: document.getElementById("ib-affects-roster")?.checked,
+          ban_scope:
+            document.getElementById("ib-ban-scope")?.value || "tournament",
+          game_id: document.getElementById("ib-game_id").value || null,
+          duration: document.getElementById("ib-duration").value || null,
+          start_date: startDate,
+          end_date: document.getElementById("ib-end").value || null,
+          description: document.getElementById("ib-desc").value.trim() || null,
+          evidence: document.getElementById("ib-evidence").value.trim() || null,
+        };
+
+        try {
+          const res = await fetch(
+            "/api/contentions/" + issueBanContentionId + "/ban",
+            {
+              method: "POST",
+              headers: API.headers(),
+              body: JSON.stringify(body),
+            }
+          );
+          const data = await res.json();
+          if (!res.ok) throw data;
+          ibSelectedPlayers = [];
+          showToast("Ban issued successfully");
+          document.getElementById("issue-ban-modal").remove();
+          await loadContentions(ctCurrentFilter);
+        } catch (e) {
+          errEl.textContent = e.error || "Failed to issue ban";
+          errEl.style.display = "block";
+        }
+      }
+
+      // ════════════════════════════════════════════════════
+      //  SPONSORS ADMIN
+      // ════════════════════════════════════════════════════
+      function spTab(btn, tab) {
+        document
+          .querySelectorAll("#sp-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        ["list", "add-sponsor", "add-deal"].forEach(
+          (t) =>
+            (document.getElementById("sp-" + t).style.display =
+              t === tab ? "" : "none")
+        );
+        if (tab === "list") loadSponsorsAdmin();
+        if (tab === "add-deal") initDealSelects();
+      }
+
+      async function loadSponsorsAdmin() {
+        try {
+          const sponsors = await API.get("/sponsors");
+          const el = document.getElementById("sp-list-inner");
+          if (!sponsors.length) {
+            el.innerHTML = Components.empty("No sponsors yet");
+            return;
+          }
+          el.innerHTML = `
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 100px;align-items:center;gap:10px;padding:10px 16px;background:var(--bg-3);font-family:var(--font-cond);font-size:11px;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3)">
+      <span>Sponsor</span><span>Industry</span><span>Investment</span><span>Deals</span>
+    </div>
+    ${sponsors
+      .map(
+        (s) => `
+    <div style="display:grid;grid-template-columns:2fr 1fr 1fr 100px;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border)">
+      <div>
+        <div style="font-family:var(--font-head);font-size:14px;font-weight:700">${
+          s.name
+        }</div>
+        ${
+          s.contact_email
+            ? `<div style="font-size:11px;color:var(--text-3)">${s.contact_email}</div>`
+            : ""
+        }
+      </div>
+      <span style="font-size:13px;color:var(--text-2)">${
+        s.industry || "—"
+      }</span>
+      <span style="font-family:var(--font-cond);font-size:15px;font-weight:700;color:var(--yellow)">${Components.formatPrize(
+        s.total_investment
+      )}</span>
+      <span style="font-family:var(--font-cond);font-size:14px;font-weight:700;text-align:center">${
+        s.entity_count || 0
+      }</span>
+    </div>`
+      )
+      .join("")}`;
+        } catch (e) {}
+      }
+
+      function initDealSelects() {
+        if (!DD.sponsors) {
+          DD.sponsors = [];
+          API.get("/sponsors").then((s) => {
+            DD.sponsors = s;
+            const opts = s.map((x) => ({ value: x.sponsor_id, label: x.name }));
+            initSearchableSelect(
+              "ss-deal-sponsor",
+              opts,
+              "deal-sponsor_id",
+              {}
+            );
+          });
+        } else {
+          const opts = DD.sponsors.map((x) => ({
+            value: x.sponsor_id,
+            label: x.name,
+          }));
+          initSearchableSelect("ss-deal-sponsor", opts, "deal-sponsor_id", {});
+        }
+      }
+
+      function updateDealEntity() {
+        const type = document.getElementById("deal-entity-type").value;
+        let opts = [];
+        if (type === "team")
+          opts = (DD.teams || []).map((t) => ({
+            value: t.team_id,
+            label: t.name,
+          }));
+        if (type === "tournament")
+          opts = (DD.tournaments || []).map((t) => ({
+            value: t.tournament_id,
+            label: t.name,
+          }));
+        if (type === "player")
+          opts = (DD.players || []).map((p) => ({
+            value: p.player_id,
+            label: p.username || p.name,
+          }));
+        const c = document.getElementById("ss-deal-entity");
+        if (c._updateOptions) c._updateOptions(opts);
+        else initSearchableSelect("ss-deal-entity", opts, "deal-entity_id", {});
+      }
+
+      async function addSponsor() {
+        const errEl = document.getElementById("sp-error");
+        const sucEl = document.getElementById("sp-success");
+        errEl.style.display = "none";
+        sucEl.style.display = "none";
+        const body = {
+          name: document.getElementById("sp-name").value.trim(),
+          industry: document.getElementById("sp-industry").value.trim() || null,
+          contact_email:
+            document.getElementById("sp-email").value.trim() || null,
+          total_investment: document.getElementById("sp-investment").value || 0,
+        };
+        if (!body.name) {
+          errEl.textContent = "Name required";
+          errEl.style.display = "block";
+          return;
+        }
+        try {
+          const r = await API.post("/sponsors", body);
+          sucEl.textContent = `✅ Sponsor "${body.name}" added (ID: ${r.sponsor_id})`;
+          sucEl.style.display = "block";
+          showToast("Sponsor added!");
+          await loadDropdownData(); // refresh for deal form
+        } catch (e) {
+          errEl.textContent = e.error || "Failed";
+          errEl.style.display = "block";
+        }
+      }
+
+      async function addDeal() {
+        const errEl = document.getElementById("deal-error");
+        const sucEl = document.getElementById("deal-success");
+        errEl.style.display = "none";
+        sucEl.style.display = "none";
+        const body = {
+          sponsor_id: document.getElementById("deal-sponsor_id").value,
+          entity_type: document.getElementById("deal-entity-type").value,
+          entity_id: document.getElementById("deal-entity_id").value,
+          amount: document.getElementById("deal-amount").value || 0,
+          contract_start: document.getElementById("deal-start").value,
+          contract_end: document.getElementById("deal-end").value || null,
+        };
+        if (!body.sponsor_id) {
+          errEl.textContent = "Select a sponsor";
+          errEl.style.display = "block";
+          return;
+        }
+        if (!body.entity_type) {
+          errEl.textContent = "Select entity type";
+          errEl.style.display = "block";
+          return;
+        }
+        if (!body.entity_id) {
+          errEl.textContent = "Select entity";
+          errEl.style.display = "block";
+          return;
+        }
+        if (!body.contract_start) {
+          errEl.textContent = "Start date required";
+          errEl.style.display = "block";
+          return;
+        }
+        try {
+          await API.post("/sponsors/deal", body);
+          sucEl.textContent = "✅ Sponsorship deal created!";
+          sucEl.style.display = "block";
+          showToast("Deal created!");
+        } catch (e) {
+          errEl.textContent = e.error || "Failed";
+          errEl.style.display = "block";
+        }
+      }
+
+      // ── Extend init to load new sections on demand ──
+      const origShowSection = showSection;
+      window.showSection = function (id) {
+        origShowSection(id);
+        if (id === "contentions") loadContentions("open");
+        if (id === "sponsors-admin") loadSponsorsAdmin();
+        if (id === "approvals") loadApprovals("pending");
+        if (id === "database-editor") loadTables(); 
+      };
+
+      // ════════════════════════════════════════════════════
+      //  PLAYER APPROVALS
+      // ════════════════════════════════════════════════════
+      let apCurrentFilter = "pending";
+      let gamesList = [];
+
+      async function apTab(btn, filter) {
+        document
+          .querySelectorAll("#ap-tabs .filter-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        apCurrentFilter = filter;
+        await loadApprovals(filter);
+      }
+
+      async function loadApprovals(filter) {
+        const panel = document.getElementById("ap-panel");
+        panel.innerHTML = Components.loading();
+        try {
+          if (!gamesList.length) {
+            const gData = await API.get("/admin/games");
+            gamesList = gData;
+          }
+          const pending = await API.get("/admin/pending-players");
+          const players =
+            filter === "pending"
+              ? pending.filter((p) => p.approval_status === "pending")
+              : pending;
+
+          // Also update badge
+          const badge = document.getElementById("approvals-badge");
+          const pendingCount = pending.filter(
+            (p) => p.approval_status === "pending"
+          ).length;
+          if (pendingCount > 0) {
+            badge.textContent = pendingCount;
+            badge.style.display = "";
+          } else badge.style.display = "none";
+
+          if (!players.length) {
+            panel.innerHTML = Components.empty(
+              filter === "pending"
+                ? "No pending registrations 🎉"
+                : "No registrations found"
+            );
+            return;
+          }
+
+          panel.innerHTML = players
+            .map((p) => {
+              const gameIds = (p.game_ids || "").split(",").filter(Boolean);
+              const gameNames = (p.games_applied || "")
+                .split(",")
+                .filter(Boolean);
+              const gameStats = (p.game_statuses || "")
+                .split(",")
+                .filter(Boolean);
+
+              const gameRows = gameIds
+                .map((gid, i) => {
+                  const gname = gameNames[i] || gid;
+                  const gstat = gameStats[i] || "pending";
+                  const isPend = gstat === "pending";
+                  return `
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span style="font-size:18px">${
+              { Valorant: "🎯", BGMI: "🔫", CS2: "💣" }[gname] || "🎮"
+            }</span>
+            <span style="font-family:var(--font-head);font-size:13px;font-weight:700">${gname}</span>
+          </div>
+          <div style="display:flex;gap:6px;align-items:center">
+            <span style="padding:2px 8px;border-radius:3px;font-family:var(--font-cond);font-size:10px;font-weight:700;text-transform:uppercase;${
+              gstat === "approved"
+                ? "background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.3)"
+                : gstat === "rejected"
+                ? "background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.3)"
+                : "background:rgba(251,191,36,.1);color:var(--yellow);border:1px solid rgba(251,191,36,.3)"
+            }">${gstat}</span>
+            ${
+              isPend
+                ? `
+            <button class="btn btn-sm" style="background:rgba(74,222,128,.15);color:var(--green);border:1px solid rgba(74,222,128,.3);padding:4px 10px;font-size:11px" onclick="approveGame(${p.player_id},${gid},'approve')">✓ Approve</button>
+            <button class="btn btn-sm" style="background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.3);padding:4px 10px;font-size:11px" onclick="approveGame(${p.player_id},${gid},'reject')">✗ Reject</button>`
+                : ""
+            }
+          </div>
+        </div>`;
+                })
+                .join("");
+
+              return `
+      <div style="background:var(--bg-2);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:12px">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border)">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="nav-avatar" style="width:38px;height:38px;font-size:14px">${(p.username ||
+              "?")[0].toUpperCase()}</div>
+            <div>
+              <div style="font-family:var(--font-head);font-size:15px;font-weight:700">${
+                p.username
+              }</div>
+              <div style="font-size:12px;color:var(--text-3)">${p.name} · ${
+                p.email
+              }</div>
+              <div style="font-size:11px;color:var(--text-3);margin-top:2px">${
+                p.country || "—"
+              } · ${p.region || "—"} · Age ${
+                p.age || "—"
+              } · Registered ${Components.formatDate(p.created_at)}</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px">
+            ${
+              p.approval_status === "pending"
+                ? `
+            <button class="btn btn-primary btn-sm" onclick="approveAllGames(${p.player_id},'approve')">✓ Approve All</button>
+            <button class="btn btn-sm" style="background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.3)" onclick="approveAllGames(${p.player_id},'reject')">✗ Reject All</button>`
+                : ""
+            }
+          </div>
+        </div>
+        <div style="padding:12px 16px">
+          <div style="font-family:var(--font-cond);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text-3);margin-bottom:8px">Game Registrations</div>
+          ${gameRows}
+        </div>
+      </div>`;
+            })
+            .join("");
+        } catch (e) {
+          panel.innerHTML = Components.empty("Failed to load approvals");
+        }
+      }
+
+      async function approveGame(playerId, gameId, action) {
+        try {
+          const res = await fetch("/api/admin/approve-player", {
+            method: "PUT",
+            headers: API.headers(),
+            body: JSON.stringify({
+              player_id: playerId,
+              game_id: gameId,
+              action,
+            }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw d;
+          showToast(action === "approve" ? "✓ Approved" : "✗ Rejected");
+          await loadApprovals(apCurrentFilter);
+        } catch (e) {
+          showToast(e.error || "Failed", "error");
+        }
+      }
+
+      async function approveAllGames(playerId, action) {
+        try {
+          const res = await fetch("/api/admin/approve-player", {
+            method: "PUT",
+            headers: API.headers(),
+            body: JSON.stringify({ player_id: playerId, action }),
+          });
+          const d = await res.json();
+          if (!res.ok) throw d;
+          showToast(
+            action === "approve" ? "✓ Player approved!" : "✗ Player rejected"
+          );
+          await loadApprovals(apCurrentFilter);
+        } catch (e) {
+          showToast(e.error || "Failed", "error");
+        }
+      }
+
+      // ── Database Editor Functions ────────────────────
+      function dbTab(el, tab) {
+        document.querySelectorAll("#db-tabs .filter-tab").forEach((b) => b.classList.remove("active"));
+        el.classList.add("active");
+        document.getElementById("db-tables").style.display = tab === "tables" ? "" : "none";
+        document.getElementById("db-query").style.display = tab === "query" ? "" : "none";
+        if (tab === "tables") {
+          loadTables();
+        }
+      }
+
+      async function loadTables() {
+        const container = document.getElementById("db-tables-inner");
+        try {
+          const tables = await API.get("/admin/database/tables");
+          let html = '<div style="padding: 20px">';
+          html += '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px;">';
+          
+          for (const table of tables) {
+            html += `<div class="card" style="cursor: pointer; transition: all 0.2s;" onclick="viewTableData('${table}')">
+              <div style="padding: 16px; text-align: center;">
+                <div style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">${table}</div>
+                <button class="btn btn-primary btn-sm" onclick="event.stopPropagation(); viewTableData('${table}')">View/Edit</button>
+              </div>
+            </div>`;
+          }
+          
+          html += '</div></div>';
+          container.innerHTML = html;
+        } catch (e) {
+          container.innerHTML = Components.empty("Failed to load tables: " + e.error);
+        }
+      }
+
+      async function viewTableData(tableName) {
+        document.querySelectorAll("#db-tabs .filter-tab").forEach((b) => b.classList.remove("active"));
+        document.querySelectorAll("#db-tabs .filter-tab")[0].classList.add("active");
+        
+        const container = document.getElementById("db-tables-inner");
+        container.innerHTML = '<div class="loading" style="padding: 24px"><div class="spinner"></div></div>';
+        
+        try {
+          const data = await API.get(`/admin/database/table/${tableName}`);
+          
+          let html = `<div style="padding: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+              <h3>${tableName}</h3>
+              <button class="btn btn-ghost btn-sm" onclick="loadTables()">← Back to Tables</button>
+            </div>
+            <div style="overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead style="background: var(--bg-3);">
+                  <tr>`;
+          
+          // --- FIX 1: RESTORE HEADERS ---
+          if (data.rows && data.rows.length > 0) {
+            const columns = Object.keys(data.rows[0]);
+            for (const col of columns) {
+              // Properly render the column name
+              html += `<th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600;">${col}</th>`;
+            }
+            html += `<th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600;">Actions</th>`;
+          }
+          
+          html += `</tr></thead><tbody>`;
+          
+          if (data.rows && data.rows.length > 0) {
+            const columns = Object.keys(data.rows[0]);
+            for (let i = 0; i < data.rows.length; i++) {
+              const row = data.rows[i];
+              html += `<tr style="border-bottom: 1px solid var(--border); ${i % 2 === 0 ? 'background: var(--bg-2)' : ''}">`;
+              
+              for (const col of columns) {
+                const val = row[col] || "NULL";
+                html += `<td style="padding: 10px;" contenteditable="true" class="db-cell" data-table="${tableName}" data-column="${col}" data-row="${i}" data-original="${val}">${val}</td>`;
+              }
+              
+              // --- FIX 2: MOVE BUTTONS HERE ---
+              html += `<td style="padding: 10px; white-space: nowrap; display: flex; gap: 6px;">
+                         <button class="btn btn-primary btn-xs" onclick="saveRowEdit('${tableName}', ${i})">Save</button>
+                         <button class="btn btn-xs" style="background: rgba(248, 113, 113, 0.1); color: var(--red); border: 1px solid rgba(248, 113, 113, 0.3);" onclick="deleteTableRow('${tableName}', ${i})">🗑️</button>
+                       </td>`;
+              html += `</tr>`;
+            }
+          } else {
+            html += `<tr><td colspan="100%" style="padding: 20px; text-align: center; color: var(--text-3);">No data</td></tr>`;
+          }
+          
+          html += `</tbody></table></div>
+            <button class="btn btn-secondary" style="margin-top: 16px;" onclick="loadTables()">Back</button>
+          </div>`;
+          
+          container.innerHTML = html;
+        } catch (e) {
+          container.innerHTML = Components.empty("Failed to load table data: " + (e.error || e));
+        }
+      }
+
+      async function saveRowEdit(tableName, rowIndex) {
+        const cells = document.querySelectorAll(`.db-cell[data-table="${tableName}"][data-row="${rowIndex}"]`);
+        const updates = {};
+        
+        for (const cell of cells) {
+          const col = cell.dataset.column;
+          const newVal = cell.textContent;
+          const oldVal = cell.dataset.original;
+          
+          if (newVal !== oldVal) {
+            updates[col] = newVal === "NULL" ? null : newVal;
+          }
+        }
+        
+        async function deleteTableRow(tableName, rowIndex) {
+        if (!confirm('Are you sure you want to delete this row? This cannot be undone.')) return;
+        
+        // Assume the first cell in the row is the primary identifier
+        const firstCell = document.querySelector(`.db-cell[data-table="${tableName}"][data-row="${rowIndex}"]`);
+        if (!firstCell) return;
+
+        const pkColumn = firstCell.dataset.column;
+        const pkValue = firstCell.dataset.original === "NULL" ? null : firstCell.dataset.original;
+
+        try {
+          const res = await fetch(`/api/admin/database/table/${tableName}`, {
+            method: 'DELETE',
+            headers: API.headers(),
+            body: JSON.stringify({ pkColumn, pkValue })
+          });
+          const data = await res.json();
+          if (!res.ok) throw data;
+          
+          showToast("✓ Row deleted");
+          await viewTableData(tableName); // Refresh table
+        } catch (e) {
+          showToast(e.error || "Failed to delete row", "error");
+        }
+      }
+        
+        try {
+          const res = await API.put(`/admin/database/table/${tableName}`, { updates, rowIndex });
+          showToast("✓ Row updated");
+          await viewTableData(tableName);
+        } catch (e) {
+          showToast(e.error || "Failed to update row", "error");
+        }
+      }
+
+      async function executeQuery() {
+        const query = document.getElementById("sql-query").value.trim();
+        if (!query) {
+          showToast("Please enter a query", "error");
+          return;
+        }
+        
+        const resultsDiv = document.getElementById("query-results");
+        resultsDiv.innerHTML = '<div class="loading" style="padding: 24px"><div class="spinner"></div></div>';
+        
+        try {
+          const data = await API.post(`/admin/database/query`, { query });
+          
+          let html = '';
+          if (data.rows && data.rows.length > 0) {
+            const columns = Object.keys(data.rows[0]);
+            html += `<table style="width: 100%; border-collapse: collapse; margin-top: 16px;">
+              <thead style="background: var(--bg-3);">
+                <tr>`;
+            
+            for (const col of columns) {
+              html += `<th style="padding: 10px; text-align: left; border-bottom: 1px solid var(--border); font-weight: 600;">${col}</th>`;
+            }
+            
+            html += `</tr></thead><tbody>`;
+            
+            for (let i = 0; i < data.rows.length; i++) {
+              const row = data.rows[i];
+              html += `<tr style="border-bottom: 1px solid var(--border); ${i % 2 === 0 ? 'background: var(--bg-2)' : ''}">`;
+              
+              for (const col of columns) {
+                const val = row[col] || "NULL";
+                html += `<td style="padding: 10px;">${val}</td>`;
+              }
+              
+              html += `</tr>`;
+            }
+            
+            html += `</tbody></table>`;
+            html += `<div style="margin-top: 12px; color: var(--text-3); font-size: 12px;">Rows: ${data.rows.length}</div>`;
+          } else {
+            html += `<div style="padding: 16px; background: var(--bg-3); border-radius: var(--radius); text-align: center; color: var(--text-3);">Query executed. No rows returned.</div>`;
+          }
+          
+          resultsDiv.innerHTML = html;
+          document.getElementById("query-error").style.display = "none";
+          showToast("✓ Query executed");
+        } catch (e) {
+          document.getElementById("query-error").textContent = e.error || "Query failed";
+          document.getElementById("query-error").style.display = "block";
+          resultsDiv.innerHTML = '';
+        }
+      }
+      // Explicitly attach to the window object so inline HTML can ALWAYS find it
+            window.deleteTableRow = async function(tableName, rowIndex) {
+              if (!confirm('Are you sure you want to delete this row? This cannot be undone.')) return;
+              
+              const firstCell = document.querySelector(`.db-cell[data-table="${tableName}"][data-row="${rowIndex}"]`);
+              if (!firstCell) {
+                  alert("Could not find row data to delete.");
+                  return;
+              }
+      
+              const pkColumn = firstCell.dataset.column;
+              const pkValue = firstCell.dataset.original === "NULL" ? null : firstCell.dataset.original;
+      
+              try {
+                // Send the delete request
+                const res = await fetch(`/api/admin/database/table/${tableName}`, {
+                  method: 'DELETE',
+                  headers: API.headers(),
+                  body: JSON.stringify({ pkColumn, pkValue })
+                });
+                
+                const data = await res.json();
+                if (!res.ok) throw data;
+                
+                // Using your existing showToast if available, otherwise fallback to alert
+                if (typeof showToast === 'function') {
+                    showToast("✓ Row deleted");
+                } else {
+                    alert("✓ Row deleted");
+                }
+                
+                await viewTableData(tableName); // Refresh table
+              } catch (e) {
+                if (typeof showToast === 'function') {
+                    showToast(e.error || "Failed to delete row", "error");
+                } else {
+                    alert(e.error || "Failed to delete row");
+                }
+              }
+            };
+    </script>
+  </body>
+</html>
