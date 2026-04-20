@@ -22,10 +22,11 @@ async function main() {
   console.log('╚══════════════════════════════════════╝\x1b[0m\n');
 
   const db = await mysql.createPool({
-    host:     process.env.DB_HOST || 'localhost',
-    user:     process.env.DB_USER || 'root',
-    password: process.env.DB_PASS || '',
-    database: process.env.DB_NAME || 'vlr_clone',
+    host: process.env.MYSQLHOST,
+    user: process.env.MYSQLUSER,
+    password: process.env.MYSQLPASSWORD,
+    database: process.env.MYSQLDATABASE,
+    port: process.env.MYSQLPORT,
     waitForConnections: true,
   });
 
